@@ -1,0 +1,20 @@
+[*] open / close mc when button's pressed
+[*] press the button on start
+[*] close mc on exit
+
+* * *
+
+need "MC_CHECK_RESULT" and a generic system of throwing, logging and catching exceptions.
+
+* * *
+
+displays:
+[ ] lcnt
+[ ] speed
+[ ] input ticks
+
+controls:
+[ ] default axis parameters
+[ ] stop button
+[ ] go cw/ccw buttons
+[ ] output ticks
