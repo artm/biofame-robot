@@ -5,18 +5,20 @@
 #include <boost/assign/list_of.hpp>
 using namespace boost::assign;
 
-#define NOT_OPEN_RETURN() if (m_boardId < 0) { qWarning() << "No open board"; return; }
+#define NOT_OPEN_RETURN(res) if (m_boardId < 0) { qWarning() << "No open board"; return res; }
 
-#define CHECK_RESULT( expr ) do { \
+#define CHECK_RESULT_RES( expr, res ) do { \
         DWORD _err_code_ = expr; \
         if (_err_code_ != ERROR_SUCCESS) { \
             if (ADS1240_ERROR_MESSAGES.count(_err_code_) == 0) \
                 qCritical("Error calling " #expr ": 0x%04x", (unsigned int)_err_code_); \
             else \
                 qCritical("Error calling " #expr ": %s", ADS1240_ERROR_MESSAGES[_err_code_].c_str()); \
-            return; \
+            return res; \
         } \
     } while(false)
+
+#define CHECK_RESULT(expr) CHECK_RESULT_RES(expr,)
 
 static std::map<long, std::string> ADS1240_ERROR_MESSAGES = map_list_of
     (ERROR_SUCCESS,"Function call success")
@@ -107,4 +109,24 @@ void Motor::stop()
     NOT_OPEN_RETURN();
     // second axis bit means "slow down stop this axis"
     CHECK_RESULT( P1240MotStop( m_boardId, m_axisBit, m_axisBit) );
+}
+
+int Motor::getReg(int reg)
+{
+    NOT_OPEN_RETURN(0);
+    DWORD result;
+    CHECK_RESULT_RES( P1240MotRdReg( m_boardId, m_axisBit, reg, &result), 0 );
+    return (int)result;
+}
+
+void Motor::setAxisPara(bool sCurve,
+                        int initSpeed, int driveSpeed, int maxDriveSpeed,
+                        int acceleration, int accelerationRate)
+{
+    NOT_OPEN_RETURN();
+    CHECK_RESULT( P1240MotAxisParaSet(m_boardId,
+                                      m_axisBit,
+                                      sCurve ? m_axisBit : 0,
+                                      initSpeed, driveSpeed, maxDriveSpeed,
+                                      acceleration, accelerationRate ) );
 }

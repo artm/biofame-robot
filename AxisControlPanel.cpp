@@ -37,6 +37,13 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     connect(ui->cw, SIGNAL(clicked()), SLOT(goCw()));
     connect(ui->ccw, SIGNAL(clicked()), SLOT(goCcw()));
     connect(ui->stop, SIGNAL(clicked()), SLOT(stop()));
+    connect(ui->setAxisPara, SIGNAL(clicked()), SLOT(setAxisPara()));
+
+    connect(ui->initSpeed, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
+    connect(ui->driveSpeed, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
+    connect(ui->maxDriveSpeed, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
+    connect(ui->acceleration, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
+    connect(ui->accelerationRate, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
 }
 
 AxisControlPanel::~AxisControlPanel()
@@ -48,8 +55,6 @@ void AxisControlPanel::setMotor(Motor *motor)
 {
     m_motor = motor;
     m_motor->setUi(this);
-    // get the values...
-    //ui->
 }
 
 void AxisControlPanel::output(int idx, bool state)
@@ -91,6 +96,13 @@ void AxisControlPanel::stop()
 void AxisControlPanel::onBoardOpened()
 {
     output(4,true);
+
+    // ask the registers...
+    ui->initSpeed->setValue( m_motor->getReg(0x301) );
+    ui->driveSpeed->setValue( m_motor->getReg(0x302));
+    ui->maxDriveSpeed->setValue( m_motor->getReg(0x303));
+    ui->acceleration->setValue( m_motor->getReg(0x304));
+    ui->accelerationRate->setValue( m_motor->getReg(0x306));
 }
 
 void AxisControlPanel::onBoardClosing()
@@ -100,4 +112,27 @@ void AxisControlPanel::onBoardClosing()
 
 void AxisControlPanel::onBoardClosed()
 {
+}
+
+void AxisControlPanel::enableSetAxisPara()
+{
+    ui->setAxisPara->setEnabled(true);
+}
+
+void AxisControlPanel::disableSetAxisPara()
+{
+    ui->setAxisPara->setEnabled(false);
+}
+
+void AxisControlPanel::setAxisPara()
+{
+    if (!m_motor) return;
+    m_motor->setAxisPara(
+                (bool)ui->curveType->currentIndex(),
+                ui->initSpeed->value(),
+                ui->driveSpeed->value(),
+                ui->maxDriveSpeed->value(),
+                ui->acceleration->value(),
+                ui->accelerationRate->value());
+    disableSetAxisPara();
 }

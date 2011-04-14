@@ -11,6 +11,8 @@ public:
     explicit Motor(int& boardId, int axisNum, QObject *parent = 0);
     void setUi(AxisControlPanel * ui) { setParent(ui); m_ui = ui; }
 
+    int getReg(int reg);
+
 signals:
 
 public slots:
@@ -19,6 +21,9 @@ public slots:
     void goCw() { cmove(true); }
     void goCcw() { cmove(false); }
     void stop();
+
+    void setAxisPara(bool sCurve, int initSpeed, int driveSpeed, int maxDriveSpeed,
+                     int acceleration, int accelerationRate);
 
 protected:
     int& m_boardId;

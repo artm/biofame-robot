@@ -341,6 +341,12 @@
          </item>
          <item row="0" column="1">
           <widget class="QComboBox" name="curveType">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="currentIndex">
+            <number>1</number>
+           </property>
            <item>
             <property name="text">
              <string>T-curve</string>
@@ -469,7 +475,7 @@
           </widget>
          </item>
          <item row="6" column="1">
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="setAxisPara">
            <property name="enabled">
             <bool>false</bool>
            </property>

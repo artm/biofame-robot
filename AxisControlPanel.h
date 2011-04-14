@@ -33,6 +33,10 @@ public slots:
     void goCcw();
     void stop();
 
+    void enableSetAxisPara();
+    void disableSetAxisPara();
+    void setAxisPara();
+
 private:
     Ui::AxisControlPanel *ui;
     QButtonGroup * m_inputs, * m_outputs;
