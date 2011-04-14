@@ -1,11 +1,9 @@
 #include "RoboShell.h"
 #include "ui_RoboShell.h"
 
-#include <QtCore>
+#include "Motor.h"
 
-extern "C" {
-#include <Ads1240.h>
-}
+#include <QtCore>
 
 RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
@@ -13,11 +11,13 @@ RoboShell::RoboShell(QWidget *parent)
     , m_boardId(-1)
 {
     ui->setupUi(this);
-
-    // now connect the signals
     connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpen(bool)));
 
-    // now autoconnect...
+    ui->cameraPanel->setMotor( new Motor(m_boardId, CAMERA) );
+    ui->armPanel->setMotor( new Motor(m_boardId, ARM) );
+    ui->bodyPanel->setMotor( new Motor(m_boardId, BODY) );
+    ui->wheelsPanel->setMotor( new Motor(m_boardId, WHEELS) );
+
     ui->openControllerButton->setChecked(true);
 }
 
@@ -32,6 +32,11 @@ void RoboShell::close()
 {
     if (m_boardId < 0)
         return;
+
+    ui->cameraPanel->output(4,false);
+    ui->armPanel->output(4,false);
+    ui->bodyPanel->output(4,false);
+    ui->wheelsPanel->output(4,false);
 
     if (P1240MotDevClose(m_boardId) == ERROR_SUCCESS) {
         qDebug() << "Successfully closed board";
@@ -48,6 +53,10 @@ void RoboShell::open(int id)
         return;
     }
     m_boardId = id;
+    ui->cameraPanel->output(4,true);
+    ui->armPanel->output(4,true);
+    ui->bodyPanel->output(4,true);
+    ui->wheelsPanel->output(4,true);
 }
 
 void RoboShell::toggleOpen(bool on)

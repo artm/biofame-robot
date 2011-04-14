@@ -12,6 +12,13 @@ class RoboShell : public QMainWindow
     Q_OBJECT
 
 public:
+    enum {
+        CAMERA,
+        ARM,
+        BODY,
+        WHEELS
+    };
+
     explicit RoboShell(QWidget *parent = 0);
     ~RoboShell();
 

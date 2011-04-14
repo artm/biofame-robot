@@ -18,3 +18,23 @@ controls:
 [ ] stop button
 [ ] go cw/ccw buttons
 [ ] output ticks
+
+* * *
+
+had to prepare motorc like:
+
+PATH=/c/MinGW/bin/:/c/Program\ Files/CMake\ 2.8/bin MAX_SDK_ROOT=~/src/sdk/MaxSDK-5.1.1/ cmake ..
+/motorc -G "CodeBlocks - MinGW Makefiles" -DBOOST_ROOT=~/src/sdk/boost_1_44_0/
+
+after which could import the project into Qt Creator
+
+* * *
+
+[x] an object encapsulating a motor
+    all communication with the motor goes via this object
+    it also takes care that state is displayed by the GUI
+[x] engage motors on open
+    [x] need a way to send outputs to motors
+    [x] need to display output states...
+    [ ] need to connect button group events, not what I have now
+[ ] without any

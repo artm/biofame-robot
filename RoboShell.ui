@@ -37,7 +37,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="cameraTab">
        <attribute name="title">
@@ -46,6 +46,16 @@
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="AxisControlPanel" name="cameraPanel"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="armTab">
+       <attribute name="title">
+        <string>Arm</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="AxisControlPanel" name="armPanel"/>
         </item>
        </layout>
       </widget>
@@ -66,16 +76,6 @@
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="AxisControlPanel" name="wheelsPanel"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="neckTab">
-       <attribute name="title">
-        <string>Neck up/down</string>
-       </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="AxisControlPanel" name="neckPanel"/>
         </item>
        </layout>
       </widget>

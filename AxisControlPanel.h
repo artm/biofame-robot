@@ -2,10 +2,13 @@
 #define AXISCONTROLPANEL_H
 
 #include <QGroupBox>
+#include <QButtonGroup>
 
 namespace Ui {
     class AxisControlPanel;
 }
+
+class Motor;
 
 class AxisControlPanel : public QGroupBox
 {
@@ -15,8 +18,18 @@ public:
     explicit AxisControlPanel(QWidget *parent = 0);
     ~AxisControlPanel();
 
+    void setMotor(Motor * motor);
+    Motor * motor() { return m_motor; }
+
+    void output(int idx, bool state);
+
+public slots:
+    void syncOutputs();
+
 private:
     Ui::AxisControlPanel *ui;
+    QButtonGroup * m_inputs, * m_outputs;
+    Motor * m_motor;
 };
 
 #endif // AXISCONTROLPANEL_H

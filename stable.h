@@ -4,6 +4,10 @@
 #if defined __cplusplus
 #include <QtCore>
 #include <QtGui>
+#include <QtDebug>
+
+#include <boost/assign/list_of.hpp>
+
 #endif
 
 extern "C" {
