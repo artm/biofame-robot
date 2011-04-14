@@ -138,3 +138,9 @@ quint8 Motor::inputs()
     CHECK_RESULT_RES( P1240MotDI(m_boardId, m_axisBit, &ret), 0 );
     return ret;
 }
+
+void Motor::setReg(int reg, int value)
+{
+    NOT_OPEN_RETURN();
+    CHECK_RESULT( P1240MotWrReg( m_boardId, m_axisBit, reg, value) );
+}

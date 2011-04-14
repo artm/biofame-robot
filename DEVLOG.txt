@@ -49,8 +49,12 @@ after which could import the project into Qt Creator
 
 no separate thread yet, just a timer that polls everything important for every motor.
 
-[ ] circular calibration
-    [ ] panic button
-    [ ] calibrate button
-    [ ] axis knows how to calibrate itself
-    [ ] input changes send signals or events
+[x] circular calibration
+    [x] panic button
+    [x] calibrate button
+    [x] axis knows how to calibrate itself
+    [x] input changes send signals or events
+    [ ] calc and show pulse <=> degrees
+    [ ] inv and offset controls for circular axes
+    [ ] posing API in degrees
+

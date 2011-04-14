@@ -12,6 +12,8 @@ public:
     void setUi(AxisControlPanel * ui) { setParent(ui); m_ui = ui; }
 
     int getReg(int reg);
+    void setReg(int reg, int value);
+
     quint8 inputs();
 signals:
 

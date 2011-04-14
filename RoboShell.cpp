@@ -8,12 +8,18 @@
 // ms
 #define POLL_PERIOD 100
 
+RoboShell * RoboShell::s_shell = 0;
+QtMsgHandler RoboShell::s_oldMsgHandler = 0;
+
 RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RoboShell)
     , m_boardId(-1)
 {
     ui->setupUi(this);
+    s_shell = this;
+    s_oldMsgHandler = qInstallMsgHandler(msgHandler);
+
     connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpen(bool)));
 
     ui->cameraPanel->setMotor( new Motor(m_boardId, CAMERA) );
@@ -37,11 +43,12 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this,SIGNAL(boardClosing()), ui->wheelsPanel, SLOT(onBoardClosing()));
     connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
 
-    connect(ui->panic, SIGNAL(clicked()), SLOT(panic()));
-
     m_pollTimer = new QTimer(this);
     connect(m_pollTimer, SIGNAL(timeout()), SLOT(poll()));
 
+    buildStateMachine();
+
+    // the last thing to do: open the board and be ready
     ui->openControllerButton->setChecked(true);
 }
 
@@ -127,10 +134,38 @@ void RoboShell::poll()
     ui->wheelsPanel->poll();
 }
 
-void RoboShell::panic()
+void RoboShell::stopAllAxes()
 {
     ui->cameraPanel->stop();
     ui->armPanel->stop();
     ui->bodyPanel->stop();
     ui->wheelsPanel->stop();
+}
+
+void RoboShell::buildStateMachine()
+{
+    m_automaton = new QStateMachine(this);
+
+    QState * idle = new QState(m_automaton);
+    m_automaton->setInitialState(idle);
+    connect(idle, SIGNAL(entered()), SLOT(stopAllAxes()));
+
+    QState * busy = new QState(m_automaton);
+    busy->addTransition(ui->panic, SIGNAL(clicked()), idle);
+
+    QState * calib = new QState(busy);
+    m_automaton->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
+    idle->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
+    calib->setChildMode(QState::ParallelStates);
+    ui->cameraPanel->insertCircleCalibState(calib);
+    ui->bodyPanel->insertCircleCalibState(calib);
+    calib->addTransition(calib, SIGNAL(finished()), idle);
+
+    m_automaton->start();
+}
+
+void RoboShell::msgHandler(QtMsgType type, const char *message)
+{
+    s_shell->ui->statusBar->showMessage(message);
+    s_oldMsgHandler(type, message);
 }

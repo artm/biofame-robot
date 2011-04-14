@@ -3,6 +3,7 @@
 
 #include <QGroupBox>
 #include <QButtonGroup>
+#include <QState>
 
 namespace Ui {
     class AxisControlPanel;
@@ -22,6 +23,12 @@ public:
     Motor * motor() { return m_motor; }
 
     void output(int idx, bool state);
+
+    // state machine primitives
+    void insertCircleCalibState(QState * parent);
+
+signals:
+    void in6_0(); // input 6 transition from 1 to 0
 
 public slots:
     void onBoardOpened();
@@ -43,10 +50,15 @@ public slots:
     void displayPosition(int position);
     void displaySpeed(int speed);
 
+    void resetPosition();
+    void posToCircleLength();
+
 private:
     Ui::AxisControlPanel *ui;
     QButtonGroup * m_inputs, * m_outputs;
     Motor * m_motor;
+    int m_circleLength;
+    quint8 m_cachedInputs;
 };
 
 #endif // AXISCONTROLPANEL_H

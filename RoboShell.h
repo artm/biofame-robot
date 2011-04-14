@@ -2,6 +2,7 @@
 #define ROBOSHELL_H
 
 #include <QMainWindow>
+#include <QStateMachine>
 
 namespace Ui {
     class RoboShell;
@@ -22,6 +23,8 @@ public:
     explicit RoboShell(QWidget *parent = 0);
     ~RoboShell();
 
+    void buildStateMachine();
+
 signals:
     void boardOpened();
     void boardClosing();
@@ -34,12 +37,18 @@ public slots:
 
     void poll();
 
-    void panic();
+    void stopAllAxes();
 
 private:
     Ui::RoboShell *ui;
     int m_boardId;
     QTimer * m_pollTimer;
+
+    QStateMachine * m_automaton;
+
+    static void msgHandler(QtMsgType type, const char * message);
+    static RoboShell * s_shell;
+    static QtMsgHandler s_oldMsgHandler;
 };
 
 #endif // ROBOSHELL_H
