@@ -136,3 +136,22 @@ void AxisControlPanel::setAxisPara()
                 ui->accelerationRate->value());
     disableSetAxisPara();
 }
+
+void AxisControlPanel::displayPosition(int position)
+{
+    ui->position->setValue(position);
+}
+
+void AxisControlPanel::displaySpeed(int speed)
+{
+    ui->speed->setValue(speed);
+}
+
+void AxisControlPanel::poll()
+{
+    if (!m_motor) return;
+
+    quint8 di = m_motor->inputs();
+    for(int i=0; i<8; ++i)
+        m_inputs->button(i)->setChecked( (di & (1<<i)) != 0 );
+}

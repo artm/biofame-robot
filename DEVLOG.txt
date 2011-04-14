@@ -41,3 +41,11 @@ after which could import the project into Qt Creator
 [x] feedback: want to pick up the axis parameters...
 [x] parameter settage
 [x] save axis parameters to eprom just before closing...
+
+[ ] poll:
+    [x] counter
+    [x] speed
+    [x] inputs
+    [ ] axis (busy) state
+
+no separate thread yet, just a timer that polls everything important for every motor.

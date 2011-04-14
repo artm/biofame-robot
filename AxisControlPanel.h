@@ -37,6 +37,12 @@ public slots:
     void disableSetAxisPara();
     void setAxisPara();
 
+    void poll();
+    // normally the axis will poll and display it own registers
+    // display slots are for registers that might be polled by the other modules
+    void displayPosition(int position);
+    void displaySpeed(int speed);
+
 private:
     Ui::AxisControlPanel *ui;
     QButtonGroup * m_inputs, * m_outputs;

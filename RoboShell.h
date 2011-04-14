@@ -32,9 +32,12 @@ public slots:
     void open(int id = 0);
     void toggleOpen(bool on);
 
+    void poll();
+
 private:
     Ui::RoboShell *ui;
     int m_boardId;
+    QTimer * m_pollTimer;
 };
 
 #endif // ROBOSHELL_H

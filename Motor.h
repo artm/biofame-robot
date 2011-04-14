@@ -12,7 +12,7 @@ public:
     void setUi(AxisControlPanel * ui) { setParent(ui); m_ui = ui; }
 
     int getReg(int reg);
-
+    quint8 inputs();
 signals:
 
 public slots:

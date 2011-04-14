@@ -5,6 +5,9 @@
 
 #include <QtCore>
 
+// ms
+#define POLL_PERIOD 100
+
 RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RoboShell)
@@ -34,6 +37,9 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this,SIGNAL(boardClosing()), ui->wheelsPanel, SLOT(onBoardClosing()));
     connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
 
+    m_pollTimer = new QTimer(this);
+    connect(m_pollTimer, SIGNAL(timeout()), SLOT(poll()));
+
     ui->openControllerButton->setChecked(true);
 }
 
@@ -62,6 +68,8 @@ void RoboShell::close()
     m_boardId = -1;
 
     emit boardClosed();
+
+    m_pollTimer->stop();
 }
 
 void RoboShell::open(int id)
@@ -74,6 +82,8 @@ void RoboShell::open(int id)
     }
     m_boardId = id;
     emit boardOpened();
+
+    m_pollTimer->start(POLL_PERIOD);
 }
 
 void RoboShell::toggleOpen(bool on)
@@ -84,4 +94,33 @@ void RoboShell::toggleOpen(bool on)
         close();
 
     ui->openControllerButton->setChecked( m_boardId >= 0 );
+}
+
+void RoboShell::poll()
+{
+    if (m_boardId < 0) return;
+
+    /* poll some registers from 4 axes at once */
+    DWORD axisData[4];
+    if (P1240MotRdMultiReg(m_boardId, 0xF, Lcnt, axisData, axisData+1, axisData+2, axisData+3)
+            == ERROR_SUCCESS) {
+        ui->cameraPanel->displayPosition(axisData[CAMERA]);
+        ui->armPanel->displayPosition(axisData[ARM]);
+        ui->bodyPanel->displayPosition(axisData[BODY]);
+        ui->wheelsPanel->displayPosition(axisData[WHEELS]);
+    }
+
+    if (P1240MotRdMultiReg(m_boardId, 0xF, CurV, axisData, axisData+1, axisData+2, axisData+3)
+            == ERROR_SUCCESS) {
+        ui->cameraPanel->displaySpeed(axisData[CAMERA]);
+        ui->armPanel->displaySpeed(axisData[ARM]);
+        ui->bodyPanel->displaySpeed(axisData[BODY]);
+        ui->wheelsPanel->displaySpeed(axisData[WHEELS]);
+    }
+
+    /* make individual axes poll the rest (e.g. inputs) */
+    ui->cameraPanel->poll();
+    ui->armPanel->poll();
+    ui->bodyPanel->poll();
+    ui->wheelsPanel->poll();
 }

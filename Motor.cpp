@@ -130,3 +130,11 @@ void Motor::setAxisPara(bool sCurve,
                                       initSpeed, driveSpeed, maxDriveSpeed,
                                       acceleration, accelerationRate ) );
 }
+
+quint8 Motor::inputs()
+{
+    NOT_OPEN_RETURN(0);
+    quint8 ret;
+    CHECK_RESULT_RES( P1240MotDI(m_boardId, m_axisBit, &ret), 0 );
+    return ret;
+}
