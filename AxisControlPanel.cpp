@@ -3,9 +3,10 @@
 
 #include "Motor.h"
 
-AxisControlPanel::AxisControlPanel(QWidget *parent) :
-    QGroupBox(parent),
-    ui(new Ui::AxisControlPanel)
+AxisControlPanel::AxisControlPanel(QWidget *parent)
+    : QGroupBox(parent)
+    , ui(new Ui::AxisControlPanel)
+    , m_motor(0)
 {
     ui->setupUi(this);
     m_inputs = new QButtonGroup(this);
@@ -30,7 +31,12 @@ AxisControlPanel::AxisControlPanel(QWidget *parent) :
     m_outputs->addButton(ui->out6, 6);
     m_outputs->addButton(ui->out7, 7);
     m_outputs->setExclusive(false);
-    connect(m_outputs,SIGNAL(buttonClicked(int)),SLOT(syncOutputs()));
+    for(int i=4; i<8; ++i)
+        connect(m_outputs->button(i), SIGNAL(toggled(bool)),SLOT(syncOutputs()));
+
+    connect(ui->cw, SIGNAL(clicked()), SLOT(goCw()));
+    connect(ui->ccw, SIGNAL(clicked()), SLOT(goCcw()));
+    connect(ui->stop, SIGNAL(clicked()), SLOT(stop()));
 }
 
 AxisControlPanel::~AxisControlPanel()
@@ -52,10 +58,30 @@ void AxisControlPanel::output(int idx, bool state)
 
 void AxisControlPanel::syncOutputs()
 {
+    if (!m_motor) return;
+
     quint8 mask = 0;
     for(int i=4; i<8; ++i) {
         if (m_outputs->button(i)->isChecked())
             mask |= (1 << (i-4));
     }
     m_motor->output(mask);
+}
+
+void AxisControlPanel::goCw()
+{
+    if (!m_motor) return;
+    m_motor->goCw();
+}
+
+void AxisControlPanel::goCcw()
+{
+    if (!m_motor) return;
+    m_motor->goCcw();
+}
+
+void AxisControlPanel::stop()
+{
+    if (!m_motor) return;
+    m_motor->stop();
 }

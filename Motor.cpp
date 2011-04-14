@@ -81,7 +81,7 @@ static std::map<long, std::string> ADS1240_ERROR_MESSAGES = map_list_of
 Motor::Motor(int& boardId, int axisNum, QObject *parent)
     : QObject(parent)
     , m_boardId(boardId)
-    , m_axisBit( 1 << axisNum)
+    , m_axisBit((1 << axisNum)) // double parens for Qt Creator's identation sake
     , m_ui(dynamic_cast<AxisControlPanel*>(parent))
 {
 }
@@ -93,4 +93,18 @@ void Motor::output(quint8 mask)
     // double negation makes sure TRUE is just one bit
     mask &= 0xF; // leave only lowest 4 bits corresponding to outputs 4-7
     CHECK_RESULT( P1240MotDO( m_boardId, m_axisBit, mask) );
+}
+
+void Motor::cmove(bool cw)
+{
+    NOT_OPEN_RETURN();
+    // cw is 0 at axis bit, ccw is 1 there
+    CHECK_RESULT( P1240MotCmove( m_boardId, m_axisBit, cw ? 0 : m_axisBit) );
+}
+
+void Motor::stop()
+{
+    NOT_OPEN_RETURN();
+    // second axis bit means "slow down stop this axis"
+    CHECK_RESULT( P1240MotStop( m_boardId, m_axisBit, m_axisBit) );
 }

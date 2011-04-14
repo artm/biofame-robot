@@ -36,5 +36,5 @@ after which could import the project into Qt Creator
 [x] engage motors on open
     [x] need a way to send outputs to motors
     [x] need to display output states...
-    [ ] need to connect button group events, not what I have now
-[ ] without any
+    [x] need to connect button group events, not what I have now
+[ ] without any feedback send stop and continuous motion commands

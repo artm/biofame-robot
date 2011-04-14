@@ -25,6 +25,9 @@ public:
 
 public slots:
     void syncOutputs();
+    void goCw();
+    void goCcw();
+    void stop();
 
 private:
     Ui::AxisControlPanel *ui;

@@ -15,6 +15,10 @@ signals:
 
 public slots:
     void output(quint8 mask);
+    void cmove(bool cw);
+    void goCw() { cmove(true); }
+    void goCcw() { cmove(false); }
+    void stop();
 
 protected:
     int& m_boardId;
