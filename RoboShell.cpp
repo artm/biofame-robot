@@ -51,6 +51,11 @@ void RoboShell::close()
 
     emit boardClosing();
 
+    // always save...
+    if (P1240MotSavePara(m_boardId, 0xF) != ERROR_SUCCESS) {
+        qDebug() << "Coudn't save axes parameters to windows registry";
+    }
+
     if (P1240MotDevClose(m_boardId) == ERROR_SUCCESS) {
         qDebug() << "Successfully closed board";
     }
