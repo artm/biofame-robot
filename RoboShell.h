@@ -34,6 +34,8 @@ public slots:
 
     void poll();
 
+    void panic();
+
 private:
     Ui::RoboShell *ui;
     int m_boardId;

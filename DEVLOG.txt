@@ -42,10 +42,15 @@ after which could import the project into Qt Creator
 [x] parameter settage
 [x] save axis parameters to eprom just before closing...
 
-[ ] poll:
+[x] poll:
     [x] counter
     [x] speed
     [x] inputs
-    [ ] axis (busy) state
 
 no separate thread yet, just a timer that polls everything important for every motor.
+
+[ ] circular calibration
+    [ ] panic button
+    [ ] calibrate button
+    [ ] axis knows how to calibrate itself
+    [ ] input changes send signals or events

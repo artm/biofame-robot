@@ -37,6 +37,8 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this,SIGNAL(boardClosing()), ui->wheelsPanel, SLOT(onBoardClosing()));
     connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
 
+    connect(ui->panic, SIGNAL(clicked()), SLOT(panic()));
+
     m_pollTimer = new QTimer(this);
     connect(m_pollTimer, SIGNAL(timeout()), SLOT(poll()));
 
@@ -123,4 +125,12 @@ void RoboShell::poll()
     ui->armPanel->poll();
     ui->bodyPanel->poll();
     ui->wheelsPanel->poll();
+}
+
+void RoboShell::panic()
+{
+    ui->cameraPanel->stop();
+    ui->armPanel->stop();
+    ui->bodyPanel->stop();
+    ui->wheelsPanel->stop();
 }
