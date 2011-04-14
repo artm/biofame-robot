@@ -48,18 +48,8 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="counterSpin">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
-       <widget class="QSpinBox" name="speedSpin">
+       <widget class="QSpinBox" name="speed">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -350,7 +340,7 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QComboBox" name="comboBox">
+          <widget class="QComboBox" name="curveType">
            <item>
             <property name="text">
              <string>T-curve</string>
@@ -399,7 +389,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QSpinBox" name="spinBox">
+          <widget class="QSpinBox" name="initSpeed">
            <property name="minimum">
             <number>1</number>
            </property>
@@ -415,7 +405,7 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QSpinBox" name="spinBox_2">
+          <widget class="QSpinBox" name="driveSpeed">
            <property name="minimum">
             <number>1</number>
            </property>
@@ -431,7 +421,7 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QSpinBox" name="spinBox_3">
+          <widget class="QSpinBox" name="maxDriveSpeed">
            <property name="minimum">
             <number>1</number>
            </property>
@@ -447,7 +437,7 @@
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QSpinBox" name="spinBox_4">
+          <widget class="QSpinBox" name="acceleration">
            <property name="minimum">
             <number>125</number>
            </property>
@@ -463,7 +453,7 @@
           </widget>
          </item>
          <item row="5" column="1">
-          <widget class="QSpinBox" name="spinBox_5">
+          <widget class="QSpinBox" name="accelerationRate">
            <property name="minimum">
             <number>954</number>
            </property>
@@ -489,6 +479,16 @@
           </widget>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="position">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
        </widget>
       </item>
      </layout>

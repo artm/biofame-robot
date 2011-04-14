@@ -18,6 +18,22 @@ RoboShell::RoboShell(QWidget *parent)
     ui->bodyPanel->setMotor( new Motor(m_boardId, BODY) );
     ui->wheelsPanel->setMotor( new Motor(m_boardId, WHEELS) );
 
+    connect(this,SIGNAL(boardOpened()), ui->cameraPanel, SLOT(onBoardOpened()));
+    connect(this,SIGNAL(boardClosing()), ui->cameraPanel, SLOT(onBoardClosing()));
+    connect(this,SIGNAL(boardClosed()), ui->cameraPanel, SLOT(onBoardClosed()));
+
+    connect(this,SIGNAL(boardOpened()), ui->armPanel, SLOT(onBoardOpened()));
+    connect(this,SIGNAL(boardClosing()), ui->armPanel, SLOT(onBoardClosing()));
+    connect(this,SIGNAL(boardClosed()), ui->armPanel, SLOT(onBoardClosed()));
+
+    connect(this,SIGNAL(boardOpened()), ui->bodyPanel, SLOT(onBoardOpened()));
+    connect(this,SIGNAL(boardClosing()), ui->bodyPanel, SLOT(onBoardClosing()));
+    connect(this,SIGNAL(boardClosed()), ui->bodyPanel, SLOT(onBoardClosed()));
+
+    connect(this,SIGNAL(boardOpened()), ui->wheelsPanel, SLOT(onBoardOpened()));
+    connect(this,SIGNAL(boardClosing()), ui->wheelsPanel, SLOT(onBoardClosing()));
+    connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
+
     ui->openControllerButton->setChecked(true);
 }
 
@@ -33,15 +49,14 @@ void RoboShell::close()
     if (m_boardId < 0)
         return;
 
-    ui->cameraPanel->output(4,false);
-    ui->armPanel->output(4,false);
-    ui->bodyPanel->output(4,false);
-    ui->wheelsPanel->output(4,false);
+    emit boardClosing();
 
     if (P1240MotDevClose(m_boardId) == ERROR_SUCCESS) {
         qDebug() << "Successfully closed board";
     }
     m_boardId = -1;
+
+    emit boardClosed();
 }
 
 void RoboShell::open(int id)
@@ -53,10 +68,7 @@ void RoboShell::open(int id)
         return;
     }
     m_boardId = id;
-    ui->cameraPanel->output(4,true);
-    ui->armPanel->output(4,true);
-    ui->bodyPanel->output(4,true);
-    ui->wheelsPanel->output(4,true);
+    emit boardOpened();
 }
 
 void RoboShell::toggleOpen(bool on)

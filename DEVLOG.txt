@@ -37,4 +37,5 @@ after which could import the project into Qt Creator
     [x] need a way to send outputs to motors
     [x] need to display output states...
     [x] need to connect button group events, not what I have now
-[ ] without any feedback send stop and continuous motion commands
+[x] without any feedback send stop and continuous motion commands
+[ ] feedback: want to pick up the axis parameters...

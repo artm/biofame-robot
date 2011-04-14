@@ -48,6 +48,8 @@ void AxisControlPanel::setMotor(Motor *motor)
 {
     m_motor = motor;
     m_motor->setUi(this);
+    // get the values...
+    //ui->
 }
 
 void AxisControlPanel::output(int idx, bool state)
@@ -84,4 +86,18 @@ void AxisControlPanel::stop()
 {
     if (!m_motor) return;
     m_motor->stop();
+}
+
+void AxisControlPanel::onBoardOpened()
+{
+    output(4,true);
+}
+
+void AxisControlPanel::onBoardClosing()
+{
+    output(4,false);
+}
+
+void AxisControlPanel::onBoardClosed()
+{
 }

@@ -22,6 +22,11 @@ public:
     explicit RoboShell(QWidget *parent = 0);
     ~RoboShell();
 
+signals:
+    void boardOpened();
+    void boardClosing();
+    void boardClosed();
+
 public slots:
     void close();
     void open(int id = 0);

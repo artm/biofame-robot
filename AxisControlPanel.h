@@ -24,6 +24,10 @@ public:
     void output(int idx, bool state);
 
 public slots:
+    void onBoardOpened();
+    void onBoardClosing();
+    void onBoardClosed();
+
     void syncOutputs();
     void goCw();
     void goCcw();
