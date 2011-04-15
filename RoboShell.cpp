@@ -44,6 +44,8 @@ RoboShell::RoboShell(QWidget *parent)
     , m_videoInput(new videoInput)
 {
     ui->setupUi(this);
+    ui->statusBar->installEventFilter(this);
+    ui->log->hide();
     s_shell = this;
     s_oldMsgHandler = qInstallMsgHandler(msgHandler);
 
@@ -259,7 +261,8 @@ void RoboShell::msgHandler(QtMsgType type, const char *message)
 
 void RoboShell::log(QtMsgType type, const char *message)
 {
-    //ui->statusBar->showMessage(message);
+    if (!ui->log->isVisible())
+        ui->statusBar->showMessage(message);
 
     QListWidgetItem * item = new QListWidgetItem(message);
     switch(type) {
@@ -279,4 +282,18 @@ void RoboShell::log(QtMsgType type, const char *message)
     while (ui->log->count() > 500) {
         delete ui->log->takeItem(0);
     }
+
+}
+
+bool RoboShell::eventFilter(QObject * obj, QEvent * e)
+{
+    if (obj == (QObject*)ui->statusBar && e->type() == QEvent::MouseButtonRelease) {
+        ui->log->setVisible( !ui->log->isVisible() );
+        if (ui->log->isVisible())
+            ui->statusBar->clearMessage();
+        else if (ui->log->count() > 0)
+            ui->statusBar->showMessage( ui->log->item( ui->log->count()-1 )->text() );
+        return true;
+    }
+    return false;
 }

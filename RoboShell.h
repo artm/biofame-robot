@@ -47,7 +47,9 @@ public slots:
     void stopAllAxes();
     void log(QtMsgType type, const char * message);
 
-private:
+protected:
+    virtual bool eventFilter(QObject *, QEvent *);
+
     Ui::RoboShell *ui;
     int m_boardId;
     QTimer * m_pollTimer;
