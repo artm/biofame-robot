@@ -26,9 +26,11 @@ public:
 
     // state machine primitives
     void insertCircleCalibState(QState * parent);
+    void insertSeekState(QState * parent);
 
 signals:
     void in6_0(); // input 6 transition from 1 to 0
+    void driveFinished();
 
 public slots:
     void onBoardOpened();
@@ -53,12 +55,22 @@ public slots:
     void resetPosition();
     void posToCircleLength();
 
+    void track(QPointF force);
+    void moveToForce();
+
+    void parseEvents(quint8 mask);
+
+    void setTrackCoeff(double coeff) { m_trackCoeff = coeff; }
+
 private:
     Ui::AxisControlPanel *ui;
     QButtonGroup * m_inputs, * m_outputs;
     Motor * m_motor;
     int m_circleLength;
     quint8 m_cachedInputs;
+    QPointF m_trackingForce;
+
+    double m_trackCoeff;
 };
 
 #endif // AXISCONTROLPANEL_H

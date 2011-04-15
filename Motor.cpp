@@ -104,6 +104,13 @@ void Motor::cmove(bool cw)
     CHECK_RESULT( P1240MotCmove( m_boardId, m_axisBit, cw ? 0 : m_axisBit) );
 }
 
+void Motor::rmove(int dx)
+{
+    NOT_OPEN_RETURN();
+    // cw is 0 at axis bit, ccw is 1 there
+    CHECK_RESULT( P1240MotPtp( m_boardId, m_axisBit, 0, dx, dx, dx, dx) );
+}
+
 void Motor::stop()
 {
     NOT_OPEN_RETURN();
@@ -144,3 +151,23 @@ void Motor::setReg(int reg, int value)
     NOT_OPEN_RETURN();
     CHECK_RESULT( P1240MotWrReg( m_boardId, m_axisBit, reg, value) );
 }
+
+MotorEventTransition::MotorEventTransition(int axis, Motor::EventId id)
+    : m_axis(axis)
+    , m_id(id)
+{
+}
+
+bool MotorEventTransition::eventTest(QEvent *event)
+{
+    return (event->type() == QEvent::User+1)
+            && (m_axis == dynamic_cast<Motor::Event*>(event)->axis())
+            && (m_id == dynamic_cast<Motor::Event*>(event)->id());
+}
+
+void Motor::enableEvents(quint8 mask)
+{
+    NOT_OPEN_RETURN();
+    CHECK_RESULT( P1240MotEnableEvent(m_boardId, m_axisBit, mask, mask, mask, mask) );
+}
+

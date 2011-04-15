@@ -1,9 +1,10 @@
 #include "AxisControlPanel.h"
 #include "ui_AxisControlPanel.h"
 
-#include <QFinalState>
-
+#include "RoboShell.h"
 #include "Motor.h"
+
+#include <QFinalState>
 
 AxisControlPanel::AxisControlPanel(QWidget *parent)
     : QGroupBox(parent)
@@ -11,6 +12,7 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     , m_motor(0)
     , m_circleLength(0)
     , m_cachedInputs(0)
+    , m_trackCoeff(100.0)
 {
     ui->setupUi(this);
     m_inputs = new QButtonGroup(this);
@@ -48,6 +50,8 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     connect(ui->maxDriveSpeed, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
     connect(ui->acceleration, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
     connect(ui->accelerationRate, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
+
+    connect(ui->trackingCoeff, SIGNAL(valueChanged(double)), SLOT(setTrackCoeff(double)));
 }
 
 AxisControlPanel::~AxisControlPanel()
@@ -110,6 +114,8 @@ void AxisControlPanel::onBoardOpened()
     ui->maxDriveSpeed->setValue( m_motor->getReg(0x303));
     ui->acceleration->setValue( m_motor->getReg(0x304));
     ui->accelerationRate->setValue( m_motor->getReg(0x306));
+
+    m_motor->enableEvents(0xff); // all events
 }
 
 void AxisControlPanel::onBoardClosing()
@@ -169,6 +175,8 @@ void AxisControlPanel::poll()
             emit in6_0();
     }
     m_cachedInputs = di;
+
+    // check interrupt events...
 }
 
 void AxisControlPanel::insertCircleCalibState(QState *parent)
@@ -190,6 +198,18 @@ void AxisControlPanel::insertCircleCalibState(QState *parent)
     connect(s3,SIGNAL(entered()),this,SLOT(posToCircleLength()));
 }
 
+void AxisControlPanel::insertSeekState(QState *parent)
+{
+    QState * seek = new QState(parent);
+    QState * s1 = new QState(seek), * s2 = new QState(seek);
+    seek->setInitialState(s1);
+
+    s1->addTransition(RoboShell::instance(), SIGNAL(faceDetected(QPointF)), s2 );
+    s2->addTransition(this, SIGNAL(driveFinished()), s1 );
+
+    connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
+}
+
 void AxisControlPanel::resetPosition()
 {
     if (!m_motor) return;
@@ -203,3 +223,21 @@ void AxisControlPanel::posToCircleLength()
     m_circleLength = m_motor->getReg(Lcnt);
     qDebug() << "new circle length:" << m_circleLength;
 }
+
+void AxisControlPanel::track(QPointF force)
+{
+    m_trackingForce = force;
+}
+
+void AxisControlPanel::moveToForce()
+{
+    if (!m_motor) return;
+    int dx = (int)m_trackCoeff * m_trackingForce.x();
+    m_motor->rmove(dx);
+}
+
+void AxisControlPanel::parseEvents(quint8 mask)
+{
+    if (mask & 0x80) emit driveFinished();
+}
+

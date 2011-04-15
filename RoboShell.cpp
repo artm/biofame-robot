@@ -72,6 +72,8 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this,SIGNAL(boardClosing()), ui->wheelsPanel, SLOT(onBoardClosing()));
     connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
 
+    connect(this, SIGNAL(faceDetected(QPointF)), ui->cameraPanel, SLOT(track(QPointF)));
+
     m_pollTimer = new QTimer(this);
     connect(m_pollTimer, SIGNAL(timeout()), SLOT(poll()));
 
@@ -167,12 +169,21 @@ void RoboShell::poll()
         ui->wheelsPanel->displaySpeed(axisData[WHEELS]);
     }
 
+    quint8 event_masks[4];
+    if( P1240MotCheckEvent(m_boardId, (DWORD*)event_masks, 0) == ERROR_SUCCESS ) {
+        ui->cameraPanel->parseEvents(event_masks[CAMERA]);
+        ui->armPanel->parseEvents(event_masks[ARM]);
+        ui->bodyPanel->parseEvents(event_masks[BODY]);
+        ui->wheelsPanel->parseEvents(event_masks[WHEELS]);
+    }
+
     /* make individual axes poll the rest (e.g. inputs) */
     ui->cameraPanel->poll();
     ui->armPanel->poll();
     ui->bodyPanel->poll();
     ui->wheelsPanel->poll();
 
+    QPointF vector;
     if (m_videoInput->isFrameNew(0)) {
         m_videoInput->getPixels(0, m_frame.bits(), true, true);
 
@@ -184,7 +195,11 @@ void RoboShell::poll()
             QList<QRect> faces;
             m_faceTracker->process(gray, faces);
             if (faces.size()>0) {
-                qDebug() << "face at" << faces[0];
+                vector = faces[0].center();
+                vector.setX( vector.x() / gray.width() - 0.5 );
+                vector.setY( vector.y() / gray.height() - 0.5 );
+                qDebug() << "tracking force:" << vector;
+                emit faceDetected(vector);
             }
         }
 
@@ -192,6 +207,8 @@ void RoboShell::poll()
                     QPixmap::fromImage(
                         gray.scaledToWidth(320)));
     }
+    ui->forceX->setValue(vector.x());
+    ui->forceY->setValue(vector.y());
 }
 
 void RoboShell::stopAllAxes()
@@ -214,12 +231,17 @@ void RoboShell::buildStateMachine()
     busy->addTransition(ui->panic, SIGNAL(clicked()), idle);
 
     QState * calib = new QState(busy);
-    m_automaton->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
     idle->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
     calib->setChildMode(QState::ParallelStates);
     ui->cameraPanel->insertCircleCalibState(calib);
     ui->bodyPanel->insertCircleCalibState(calib);
     calib->addTransition(calib, SIGNAL(finished()), idle);
+
+    QState * seek = new QState(busy);
+    idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
+    seek->setChildMode(QState::ParallelStates);
+    ui->cameraPanel->insertSeekState(seek);
+    seek->addTransition(seek, SIGNAL(finished()), idle);
 
     m_automaton->start();
 }
@@ -250,6 +272,6 @@ void RoboShell::log(QtMsgType type, const char *message)
     ui->log->addItem(item);
     ui->log->scrollToBottom();
     while (ui->log->count() > 500) {
-        ui->log->removeItemWidget( ui->log->item(0) );
+        delete ui->log->takeItem(0);
     }
 }

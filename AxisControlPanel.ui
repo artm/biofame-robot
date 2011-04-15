@@ -514,55 +514,35 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QLabel" name="label_11">
+     <layout class="QFormLayout" name="formLayout_2">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="trackingCoeffLabel">
         <property name="text">
-         <string>Here be low-level state machine</string>
+         <string>Tracking coeff:</string>
         </property>
        </widget>
       </item>
-      <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="trackingCoeff">
+        <property name="minimum">
+         <double>-1000.000000000000000</double>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
+        <property name="maximum">
+         <double>1000.000000000000000</double>
         </property>
-       </spacer>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+        <property name="singleStep">
+         <double>10.000000000000000</double>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>230</width>
-          <height>20</height>
-         </size>
+        <property name="value">
+         <double>100.000000000000000</double>
         </property>
-       </spacer>
+       </widget>
       </item>
      </layout>
     </widget>
-   </item>
-   <item>
-    <spacer name="horizontalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

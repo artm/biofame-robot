@@ -28,11 +28,14 @@ public:
     ~RoboShell();
 
     void buildStateMachine();
+    static RoboShell * instance() { return s_shell; }
 
 signals:
     void boardOpened();
     void boardClosing();
     void boardClosed();
+
+    void faceDetected(QPointF force);
 
 public slots:
     void close();
