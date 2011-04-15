@@ -42,11 +42,12 @@ RoboShell::RoboShell(QWidget *parent)
     , ui(new Ui::RoboShell)
     , m_boardId(-1)
     , m_videoInput(new videoInput)
-    , m_faceTracker( FaceTracker::make() )
 {
     ui->setupUi(this);
     s_shell = this;
     s_oldMsgHandler = qInstallMsgHandler(msgHandler);
+
+    m_faceTracker = FaceTracker::make();
 
     connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpen(bool)));
 
@@ -94,6 +95,8 @@ RoboShell::~RoboShell()
     delete m_videoInput;
     if (m_boardId >= 0)
         close();
+    if (m_faceTracker)
+        delete m_faceTracker;
 }
 
 void RoboShell::close()
@@ -177,6 +180,14 @@ void RoboShell::poll()
                 m_frame.scaled(m_frame.size()/2);
         QImage gray = toGrayScale(deinterlaced);
 
+        if (m_faceTracker) {
+            QList<QRect> faces;
+            m_faceTracker->process(gray, faces);
+            if (faces.size()>0) {
+                qDebug() << "face at" << faces[0];
+            }
+        }
+
         ui->video->setPixmap(
                     QPixmap::fromImage(
                         gray.scaledToWidth(320)));
@@ -215,6 +226,30 @@ void RoboShell::buildStateMachine()
 
 void RoboShell::msgHandler(QtMsgType type, const char *message)
 {
-    s_shell->ui->statusBar->showMessage(message);
+    s_shell->log(type, message);
     s_oldMsgHandler(type, message);
+}
+
+void RoboShell::log(QtMsgType type, const char *message)
+{
+    //ui->statusBar->showMessage(message);
+
+    QListWidgetItem * item = new QListWidgetItem(message);
+    switch(type) {
+    case QtWarningMsg:
+        item->setForeground(QBrush(QColor(150,120,60)));
+        break;
+    case QtCriticalMsg:
+    case QtFatalMsg:
+        item->setForeground(QBrush(QColor(128,0,0)));
+    case QtDebugMsg:
+    default:
+        break;
+    }
+
+    ui->log->addItem(item);
+    ui->log->scrollToBottom();
+    while (ui->log->count() > 500) {
+        ui->log->removeItemWidget( ui->log->item(0) );
+    }
 }

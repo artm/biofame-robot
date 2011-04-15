@@ -1,13 +1,13 @@
 #include "FaceTracker.h"
 
 #include <QtDebug>
-#include <QtCore>
+#include <QImage>
 
 bool FaceTracker::s_gotLicense = false;
 int FaceTracker::s_refcount = 0;
-const NWChar * FaceTracker::s_defaultPort = (NWChar*)"5000";
-const NWChar * FaceTracker::s_defaultServer = (NWChar*)"/local";
-const NWChar * FaceTracker::s_licenseList = (NWChar*)
+const char * FaceTracker::s_defaultPort = "5000";
+const char * FaceTracker::s_defaultServer = "/local";
+const char * FaceTracker::s_licenseList =
 "SingleComputerLicense:VLExtractor,SingleComputerLicense:VLMatcher";
 
 FaceTracker * FaceTracker::make()
@@ -45,8 +45,11 @@ bool FaceTracker::obtainLicense()
     if (!s_gotLicense) {
         NBool available;
 
-        if ( !isOk( NLicenseObtain(s_defaultServer, s_defaultPort,
-                                   s_licenseList, &available),
+        if ( !isOk( NLicenseObtainA(
+                       s_defaultServer,
+                       s_defaultPort,
+                       s_licenseList,
+                       &available),
                    "NLicenseObtain failed") )
             return false;
 
@@ -105,20 +108,18 @@ bool FaceTracker::isOk(NResult result,
     }
 }
 
+bool larger(const QRect& a, const QRect& b)
+{
+    return a.width()*a.height() > b.width()*b.height();
+}
 
 void FaceTracker::process(const QImage& frame, QList<QRect>& faces)
 {
-#if 0
-    MutexTryLocker locker(m_extractorMutex);
-
-    if (!locker)
-        return;
-
     HNImage img;
     if ( !isOk( NImageCreateWrapper(
                    npfGrayscale,
-                   frame.cols, frame.rows, frame.step.p[0],
-                   0.0, 0.0, frame.data, NFalse, &img),
+                   frame.width(), frame.height(), frame.bytesPerLine(),
+                   0.0, 0.0, (void*)frame.bits(), NFalse, &img),
                "Coudn't wrap matrix for verilook"))
         return;
 
@@ -127,51 +128,17 @@ void FaceTracker::process(const QImage& frame, QList<QRect>& faces)
     NleFace * vlFaces;
     NleDetectFaces( m_extractor, img, &faceCount, &vlFaces);
 
-
-    int maxArea = 0;
-    NleDetectionDetails maxDetails;
-
-    // convert to mirror faces
-    for(int i = 0; i<faceCount; ++i) {
-        Face face( QRectF(vlFaces[i].Rectangle.X,
-                          vlFaces[i].Rectangle.Y,
-                          vlFaces[i].Rectangle.Width,
-                          vlFaces[i].Rectangle.Height));
-        if (m_detectEyes || m_recognize) {
-            NleDetectionDetails vlDetails;
-            if ( isOk(NleDetectFacialFeatures(m_extractor, img,
-                                              &vlFaces[i],
-                                              &vlDetails))) {
-                if (vlDetails.EyesAvailable == NTrue) {
-                    face.setEyes(QPointF(vlDetails.Eyes.First.X,
-                                         vlDetails.Eyes.First.Y),
-                                 QPointF(vlDetails.Eyes.Second.X,
-                                         vlDetails.Eyes.Second.Y));
-                    int area =
-                            vlFaces[i].Rectangle.Width *
-                            vlFaces[i].Rectangle.Height;
-                    if (area > maxArea) {
-                        maxArea = area;
-                        maxDetails = vlDetails;
-                    }
-                }
-            }
-        }
-
-        faces.push_back( face );
+    // convert to rectangles
+    for(int i = 0; i<faceCount; ++i) {        
+        faces.push_back( QRect(vlFaces[i].Rectangle.X,
+                               vlFaces[i].Rectangle.Y,
+                               vlFaces[i].Rectangle.Width,
+                               vlFaces[i].Rectangle.Height));
     }
 
-    if (maxArea > 0
-            && m_matchingThread
-            && m_recognize
-            && !m_matchingThread->isRunning()) {
-        // pass the largest face to the recognizer
-        m_matchingThread->setupRecognition( img, maxDetails );
-        m_matchingThread->start();
-    }
+    qSort(faces.begin(), faces.end(), larger);
 
     NFree(vlFaces);
-#endif
 }
 
 

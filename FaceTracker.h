@@ -36,9 +36,9 @@ private:
 
     static bool s_gotLicense;
 
-    static const NWChar * s_defaultPort;
-    static const NWChar * s_defaultServer;
-    static const NWChar * s_licenseList;
+    static const char * s_defaultPort;
+    static const char * s_defaultServer;
+    static const char * s_licenseList;
 
     static int s_refcount;
 };

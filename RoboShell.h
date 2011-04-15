@@ -42,6 +42,7 @@ public slots:
     void poll();
 
     void stopAllAxes();
+    void log(QtMsgType type, const char * message);
 
 private:
     Ui::RoboShell *ui;

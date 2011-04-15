@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>498</width>
-    <height>397</height>
+    <width>591</width>
+    <height>473</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,6 +52,19 @@
         </widget>
        </item>
       </layout>
+     </widget>
+    </item>
+    <item row="0" column="3" rowspan="2">
+     <widget class="QLabel" name="video">
+      <property name="minimumSize">
+       <size>
+        <width>320</width>
+        <height>240</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
      </widget>
     </item>
     <item row="1" column="0">
@@ -101,16 +114,19 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="1" rowspan="2">
-     <widget class="QLabel" name="video">
-      <property name="minimumSize">
-       <size>
-        <width>320</width>
-        <height>240</height>
-       </size>
+    <item row="2" column="0" colspan="4">
+     <widget class="QListWidget" name="log">
+      <property name="showDropIndicator" stdset="0">
+       <bool>false</bool>
       </property>
-      <property name="text">
-       <string/>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::ContiguousSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
       </property>
      </widget>
     </item>
@@ -121,7 +137,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>498</width>
+     <width>591</width>
      <height>21</height>
     </rect>
    </property>
