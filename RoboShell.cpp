@@ -12,6 +12,29 @@
 RoboShell * RoboShell::s_shell = 0;
 QtMsgHandler RoboShell::s_oldMsgHandler = 0;
 
+class GrayTable : public QVector<QRgb> {
+public:
+    GrayTable()
+        : QVector<QRgb>(256)
+    {
+        for(int i=0;i<256;++i) {
+            operator[](i) = qRgb(i,i,i);
+        }
+    }
+};
+
+static const GrayTable grayTable;
+
+QImage toGrayScale(const QImage& img)
+{
+    QImage gray(img.size(), QImage::Format_Indexed8);
+    gray.setColorTable(grayTable);
+    for(int i=0;i<img.width(); ++i)
+        for(int j=0; j<img.height(); ++j)
+            gray.setPixel(i,j,qGray(img.pixel(i,j)));
+    return gray;
+}
+
 RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RoboShell)
@@ -149,10 +172,11 @@ void RoboShell::poll()
 
         QImage deinterlaced =
                 m_frame.scaled(m_frame.size()/2);
+        QImage gray = toGrayScale(deinterlaced);
 
         ui->video->setPixmap(
                     QPixmap::fromImage(
-                        deinterlaced.scaledToWidth(320)));
+                        gray.scaledToWidth(320)));
     }
 }
 
