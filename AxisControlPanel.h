@@ -31,6 +31,8 @@ public:
 signals:
     void in6_0(); // input 6 transition from 1 to 0
     void driveFinished();
+    void positionChanged(int pos);
+    void haveForce();
 
 public slots:
     void onBoardOpened();
@@ -55,12 +57,20 @@ public slots:
     void resetPosition();
     void posToCircleLength();
 
-    void track(QPointF force);
+    void track(double force);
+    void trackX(QPointF force);
+    void trackY(QPointF force);
+
+    // try to move so the other axis moves towards desired angle
+    void trackAxis(int position);
+
     void moveToForce();
 
     void parseEvents(quint8 mask);
 
-    void setTrackCoeff(double coeff) { m_trackCoeff = coeff; }
+    void setTrackCoeff(double coeff);
+
+    void checkForce();
 
 private:
     Ui::AxisControlPanel *ui;
@@ -68,9 +78,9 @@ private:
     Motor * m_motor;
     int m_circleLength;
     quint8 m_cachedInputs;
-    QPointF m_trackingForce;
+    double m_trackingForce;
 
-    double m_trackCoeff;
+    double m_trackingCoeff;
 };
 
 #endif // AXISCONTROLPANEL_H

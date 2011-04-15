@@ -12,7 +12,8 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     , m_motor(0)
     , m_circleLength(0)
     , m_cachedInputs(0)
-    , m_trackCoeff(100.0)
+    , m_trackingForce(0.0)
+    , m_trackingCoeff(100.0)
 {
     ui->setupUi(this);
     m_inputs = new QButtonGroup(this);
@@ -152,7 +153,10 @@ void AxisControlPanel::setAxisPara()
 
 void AxisControlPanel::displayPosition(int position)
 {
-    ui->position->setValue(position);
+    if (ui->position->value() != position) {
+        ui->position->setValue(position);
+        emit positionChanged(position);
+    }
 }
 
 void AxisControlPanel::displaySpeed(int speed)
@@ -204,9 +208,11 @@ void AxisControlPanel::insertSeekState(QState *parent)
     QState * s1 = new QState(seek), * s2 = new QState(seek);
     seek->setInitialState(s1);
 
-    s1->addTransition(RoboShell::instance(), SIGNAL(faceDetected(QPointF)), s2 );
+    //s1->addTransition(RoboShell::instance(), SIGNAL(faceDetected(QPointF)), s2 );
+    s1->addTransition(this, SIGNAL(haveForce()), s2);
     s2->addTransition(this, SIGNAL(driveFinished()), s1 );
 
+    connect(s1, SIGNAL(entered()), this, SLOT(checkForce()));
     connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
 }
 
@@ -224,20 +230,50 @@ void AxisControlPanel::posToCircleLength()
     qDebug() << "new circle length:" << m_circleLength;
 }
 
-void AxisControlPanel::track(QPointF force)
+void AxisControlPanel::track(double force)
 {
-    m_trackingForce = force;
+    m_trackingForce = std::max(-1.0, std::min( 1.0, force ) );
+    checkForce();
 }
+
+void AxisControlPanel::trackX(QPointF force)
+{
+    track(force.x());
+}
+
+void AxisControlPanel::trackY(QPointF force)
+{
+    track(force.y());
+}
+
 
 void AxisControlPanel::moveToForce()
 {
     if (!m_motor) return;
-    int dx = (int)m_trackCoeff * m_trackingForce.x();
+    int dx = (int)(m_trackingCoeff * m_trackingForce);
     m_motor->rmove(dx);
 }
 
 void AxisControlPanel::parseEvents(quint8 mask)
 {
     if (mask & 0x80) emit driveFinished();
+}
+
+void AxisControlPanel::setTrackCoeff(double coeff)
+{
+    m_trackingCoeff = coeff;
+    if (ui->trackingCoeff->value() != coeff)
+        ui->trackingCoeff->setValue(coeff);
+}
+
+void AxisControlPanel::trackAxis(int position)
+{
+    track( (float)(position - ui->desire->value()) / ui->desireScale->value() );
+}
+
+void AxisControlPanel::checkForce()
+{
+    if (fabs(m_trackingForce) > 0.05)
+        emit haveForce();
 }
 

@@ -527,6 +527,9 @@
       </item>
       <item row="0" column="1">
        <widget class="QDoubleSpinBox" name="trackingCoeff">
+        <property name="decimals">
+         <number>2</number>
+        </property>
         <property name="minimum">
          <double>-1000.000000000000000</double>
         </property>
@@ -538,6 +541,43 @@
         </property>
         <property name="value">
          <double>100.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="desire">
+        <property name="minimum">
+         <number>-1000000</number>
+        </property>
+        <property name="maximum">
+         <number>1000000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="desireScale">
+        <property name="decimals">
+         <number>2</number>
+        </property>
+        <property name="maximum">
+         <double>1000000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>1000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Axis track desire</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Axis track scale</string>
         </property>
        </widget>
       </item>

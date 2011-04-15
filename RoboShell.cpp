@@ -72,12 +72,16 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this,SIGNAL(boardClosing()), ui->wheelsPanel, SLOT(onBoardClosing()));
     connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
 
-    connect(this, SIGNAL(faceDetected(QPointF)), ui->cameraPanel, SLOT(track(QPointF)));
+    connect(this, SIGNAL(faceDetected(QPointF)), ui->cameraPanel, SLOT(trackX(QPointF)));
+    connect(ui->cameraPanel, SIGNAL(positionChanged(int)),
+            ui->bodyPanel, SLOT(trackAxis(int)));
 
     m_pollTimer = new QTimer(this);
     connect(m_pollTimer, SIGNAL(timeout()), SLOT(poll()));
 
     buildStateMachine();
+
+    ui->cameraPanel->setTrackCoeff(-500);
 
     // the last thing to do: open the board and be ready
     ui->openControllerButton->setChecked(true);
@@ -199,7 +203,6 @@ void RoboShell::poll()
                 vector.setX( vector.x() / gray.width() - 0.5 );
                 vector.setY( vector.y() / gray.height() - 0.5 );
                 qDebug() << "tracking force:" << vector;
-                emit faceDetected(vector);
             }
         }
 
@@ -209,6 +212,7 @@ void RoboShell::poll()
     }
     ui->forceX->setValue(vector.x());
     ui->forceY->setValue(vector.y());
+    emit faceDetected(vector);
 }
 
 void RoboShell::stopAllAxes()
@@ -241,6 +245,7 @@ void RoboShell::buildStateMachine()
     idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
     seek->setChildMode(QState::ParallelStates);
     ui->cameraPanel->insertSeekState(seek);
+    ui->bodyPanel->insertSeekState(seek);
     seek->addTransition(seek, SIGNAL(finished()), idle);
 
     m_automaton->start();
