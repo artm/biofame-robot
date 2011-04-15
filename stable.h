@@ -8,6 +8,8 @@
 
 #include <boost/assign/list_of.hpp>
 
+#include "videoInput.h"
+
 #endif
 
 extern "C" {

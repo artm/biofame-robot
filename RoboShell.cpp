@@ -2,11 +2,12 @@
 #include "ui_RoboShell.h"
 
 #include "Motor.h"
+#include "videoInput.h"
 
 #include <QtCore>
 
 // ms
-#define POLL_PERIOD 100
+#define POLL_PERIOD 50
 
 RoboShell * RoboShell::s_shell = 0;
 QtMsgHandler RoboShell::s_oldMsgHandler = 0;
@@ -15,6 +16,7 @@ RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RoboShell)
     , m_boardId(-1)
+    , m_videoInput(new videoInput)
 {
     ui->setupUi(this);
     s_shell = this;
@@ -50,11 +52,20 @@ RoboShell::RoboShell(QWidget *parent)
 
     // the last thing to do: open the board and be ready
     ui->openControllerButton->setChecked(true);
+
+    // start capture...
+    m_videoInput->listDevices();
+    m_videoInput->setupDevice(0);
+    m_frame = QImage(m_videoInput->getWidth(0),
+                     m_videoInput->getHeight(0),
+                     QImage::Format_RGB888);
 }
 
 RoboShell::~RoboShell()
 {
     delete ui;
+    m_videoInput->stopDevice(0);
+    delete m_videoInput;
     if (m_boardId >= 0)
         close();
 }
@@ -132,6 +143,15 @@ void RoboShell::poll()
     ui->armPanel->poll();
     ui->bodyPanel->poll();
     ui->wheelsPanel->poll();
+
+    if (m_videoInput->isFrameNew(0)) {
+        m_videoInput->getPixels(0, m_frame.bits(), true, true);
+        ui->video->setPixmap(
+                    QPixmap::fromImage(
+                        m_frame.scaledToWidth(
+                            320,
+                            Qt::SmoothTransformation)));
+    }
 }
 
 void RoboShell::stopAllAxes()

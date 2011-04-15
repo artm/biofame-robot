@@ -11,7 +11,8 @@ SOURCES += main.cpp\
 HEADERS  += RoboShell.h \
     stable.h \
     AxisControlPanel.h \
-    Motor.h
+    Motor.h \
+    videoInput.h
 
 FORMS    += RoboShell.ui \
     AxisControlPanel.ui
@@ -24,6 +25,8 @@ INCLUDEPATH += "C:/Program Files/Advantech/Motion/PCI-1240/Examples/Include"
 # link against ADS1240.dll directly. Hence linking with this (interface
 # library or something like that).
 LIBS += "C:/Program Files/Advantech/Motion/PCI-1240/Examples/VC/LIB/ADS1240.lib"
+LIBS += "$$PWD/libvideoInput.a"
+LIBS += -luuid -lstrmiids -lole32 -loleaut32
 
 INCLUDEPATH += "../sdk/boost_1_44_0/include"
 

@@ -8,6 +8,8 @@ namespace Ui {
     class RoboShell;
 }
 
+class videoInput;
+
 class RoboShell : public QMainWindow
 {
     Q_OBJECT
@@ -45,6 +47,9 @@ private:
     QTimer * m_pollTimer;
 
     QStateMachine * m_automaton;
+
+    videoInput * m_videoInput;
+    QImage m_frame;
 
     static void msgHandler(QtMsgType type, const char * message);
     static RoboShell * s_shell;

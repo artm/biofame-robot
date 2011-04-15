@@ -9,15 +9,15 @@ need "MC_CHECK_RESULT" and a generic system of throwing, logging and catching ex
 * * *
 
 displays:
-[ ] lcnt
-[ ] speed
-[ ] input ticks
+[x] lcnt
+[x] speed
+[x] input ticks
 
 controls:
-[ ] default axis parameters
-[ ] stop button
-[ ] go cw/ccw buttons
-[ ] output ticks
+[x] default axis parameters
+[x] stop button
+[x] go cw/ccw buttons
+[x] output ticks
 
 * * *
 
@@ -58,3 +58,10 @@ no separate thread yet, just a timer that polls everything important for every m
     [ ] inv and offset controls for circular axes
     [ ] posing API in degrees
 
+[ ] face detection / tracking
+    [x] video input
+    [ ] video preprocessing:
+        [ ] deinterlace (fast scale down by 2x2)
+        [ ] greyscale
+    [ ] video display (fast scale to 320 width)
+    [ ] detect faces and display detection parameters
