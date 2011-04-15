@@ -15,7 +15,13 @@
 extern "C" {
 #include <windows.h>
 #include <windef.h>
+
 #include <Ads1240.h>
+
+#include <NCore.h>
+#include <NLExtractor.h>
+#include <NLicensing.h>
+
 }
 
 #endif // STABLE_H

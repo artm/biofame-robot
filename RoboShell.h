@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QStateMachine>
 
+class FaceTracker;
+
 namespace Ui {
     class RoboShell;
 }
@@ -50,6 +52,8 @@ private:
 
     videoInput * m_videoInput;
     QImage m_frame;
+
+    FaceTracker * m_faceTracker;
 
     static void msgHandler(QtMsgType type, const char * message);
     static RoboShell * s_shell;

@@ -6,6 +6,8 @@
 
 #include <QtCore>
 
+#include "FaceTracker.h"
+
 // ms
 #define POLL_PERIOD 50
 
@@ -40,6 +42,7 @@ RoboShell::RoboShell(QWidget *parent)
     , ui(new Ui::RoboShell)
     , m_boardId(-1)
     , m_videoInput(new videoInput)
+    , m_faceTracker( FaceTracker::make() )
 {
     ui->setupUi(this);
     s_shell = this;
