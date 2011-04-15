@@ -61,7 +61,9 @@ no separate thread yet, just a timer that polls everything important for every m
 [ ] face detection / tracking
     [x] video input
     [ ] video preprocessing:
-        [ ] deinterlace (fast scale down by 2x2)
+        [x] deinterlace (fast scale down by 2x2)
         [ ] greyscale
-    [ ] video display (fast scale to 320 width)
+    [x] video display (fast scale to 320 width)
     [ ] detect faces and display detection parameters
+
+

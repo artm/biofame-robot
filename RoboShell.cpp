@@ -146,11 +146,13 @@ void RoboShell::poll()
 
     if (m_videoInput->isFrameNew(0)) {
         m_videoInput->getPixels(0, m_frame.bits(), true, true);
+
+        QImage deinterlaced =
+                m_frame.scaled(m_frame.size()/2);
+
         ui->video->setPixmap(
                     QPixmap::fromImage(
-                        m_frame.scaledToWidth(
-                            320,
-                            Qt::SmoothTransformation)));
+                        deinterlaced.scaledToWidth(320)));
     }
 }
 
