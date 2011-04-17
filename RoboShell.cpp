@@ -41,6 +41,7 @@ RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RoboShell)
     , m_boardId(-1)
+    , m_videoTimer(0)
     , m_videoInput(new videoInput)
 {
     ui->setupUi(this);
@@ -79,7 +80,7 @@ RoboShell::RoboShell(QWidget *parent)
             ui->bodyPanel, SLOT(trackAxis(int)));
 
     m_pollTimer = new QTimer(this);
-    connect(m_pollTimer, SIGNAL(timeout()), SLOT(poll()));
+    connect(m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
     buildStateMachine();
 
@@ -89,11 +90,16 @@ RoboShell::RoboShell(QWidget *parent)
     ui->openControllerButton->setChecked(true);
 
     // start capture...
-    m_videoInput->listDevices();
-    m_videoInput->setupDevice(0);
-    m_frame = QImage(m_videoInput->getWidth(0),
-                     m_videoInput->getHeight(0),
-                     QImage::Format_RGB888);
+    int nCams = m_videoInput->listDevices();
+    if (nCams) {
+        m_videoInput->setupDevice(0,320,240);
+        m_frame = QImage(m_videoInput->getWidth(0),
+                         m_videoInput->getHeight(0),
+                         QImage::Format_RGB888);
+        m_videoTimer = new QTimer(this);
+        connect(m_videoTimer, SIGNAL(timeout()), SLOT(videoTask()));
+        m_videoTimer->start(50);
+    }
 }
 
 RoboShell::~RoboShell()
@@ -153,7 +159,7 @@ void RoboShell::toggleOpen(bool on)
     ui->openControllerButton->setChecked( m_boardId >= 0 );
 }
 
-void RoboShell::poll()
+void RoboShell::motorsTask()
 {
     if (m_boardId < 0) return;
 
@@ -189,32 +195,6 @@ void RoboShell::poll()
     ui->bodyPanel->poll();
     ui->wheelsPanel->poll();
 
-    QPointF vector;
-    if (m_videoInput->isFrameNew(0)) {
-        m_videoInput->getPixels(0, m_frame.bits(), true, true);
-
-        QImage deinterlaced =
-                m_frame.scaled(m_frame.size()/2);
-        QImage gray = toGrayScale(deinterlaced);
-
-        if (m_faceTracker) {
-            QList<QRect> faces;
-            m_faceTracker->process(gray, faces);
-            if (faces.size()>0) {
-                vector = faces[0].center();
-                vector.setX( vector.x() / gray.width() - 0.5 );
-                vector.setY( vector.y() / gray.height() - 0.5 );
-                qDebug() << "tracking force:" << vector;
-            }
-        }
-
-        ui->video->setPixmap(
-                    QPixmap::fromImage(
-                        gray.scaledToWidth(320)));
-    }
-    ui->forceX->setValue(vector.x());
-    ui->forceY->setValue(vector.y());
-    emit faceDetected(vector);
 }
 
 void RoboShell::stopAllAxes()
@@ -296,4 +276,33 @@ bool RoboShell::eventFilter(QObject * obj, QEvent * e)
         return true;
     }
     return false;
+}
+
+void RoboShell::videoTask()
+{
+    QPointF vector;
+    if (m_videoInput->isFrameNew(0)) {
+        m_videoInput->getPixels(0, m_frame.bits(), true, true);
+        ui->video->setPixmap(
+                    QPixmap::fromImage(
+                        m_frame.scaledToWidth(320)));
+
+        QImage deinterlaced =
+                m_frame.scaled(m_frame.size()/2);
+        QImage gray = toGrayScale(deinterlaced);
+
+        if (m_faceTracker) {
+            QList<QRect> faces;
+            m_faceTracker->process(gray, faces);
+            if (faces.size()>0) {
+                vector = faces[0].center();
+                vector.setX( vector.x() / gray.width() - 0.5 );
+                vector.setY( vector.y() / gray.height() - 0.5 );
+            }
+        }
+
+    }
+    ui->forceX->setValue(vector.x());
+    ui->forceY->setValue(vector.y());
+    emit faceDetected(vector);
 }

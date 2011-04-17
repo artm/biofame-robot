@@ -42,7 +42,8 @@ public slots:
     void open(int id = 0);
     void toggleOpen(bool on);
 
-    void poll();
+    void motorsTask();
+    void videoTask();
 
     void stopAllAxes();
     void log(QtMsgType type, const char * message);
@@ -52,7 +53,7 @@ protected:
 
     Ui::RoboShell *ui;
     int m_boardId;
-    QTimer * m_pollTimer;
+    QTimer * m_pollTimer, * m_videoTimer;
 
     QStateMachine * m_automaton;
 
