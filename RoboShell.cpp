@@ -37,6 +37,24 @@ QImage toGrayScale(const QImage& img)
     return gray;
 }
 
+void normalizeGrayscale(QImage& img) {
+    Q_ASSERT(img.format() == QImage::Format_Indexed8);
+    int min, max;
+    min = max = img.pixel(0,0);
+    for(int i=0;i<img.width(); ++i)
+        for(int j=0; j<img.height(); ++j) {
+            int v = img.pixel(i,j);
+            if (min > v) min = v;
+            if (max < v) max = v;
+        }
+    int d = max - min;
+    for(int i=0;i<img.width(); ++i)
+        for(int j=0; j<img.height(); ++j) {
+            int v = (img.pixel(i,j) - min) * 255 / d;
+            img.setPixel( i, j, v );
+        }
+}
+
 RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RoboShell)
@@ -90,21 +108,20 @@ RoboShell::RoboShell(QWidget *parent)
 
     // setup video input
     connect(&m_videoTimer, SIGNAL(timeout()), SLOT(videoTask()));
-    connect(ui->camSelector, SIGNAL(activated(int)),
-            SLOT(openCamera(int)));
-    connect(ui->camSettings, SIGNAL(clicked()),
-            SLOT(openCamSettings()));
+    connect(ui->camSelector, SIGNAL(activated(int)), SLOT(openCamera()));
+    connect(ui->resolution, SIGNAL(currentIndexChanged(int)), SLOT(openCamera()));
+    connect(ui->camSettings, SIGNAL(clicked()), SLOT(openCamSettings()));
+
     int nCams = m_cams->listDevices();
     ui->camSelector->setEnabled(nCams);
     ui->camSettings->setEnabled(nCams);
+    ui->resolution->setEnabled(nCams);
     ui->camSelector->clear();
     if (nCams) {
         for(int i=0; i<nCams; ++i) {
             ui->camSelector->addItem( m_cams->getDeviceName(i) );
-            if (nCams == 1)
-                openCamera(0);
+            openCamera();
         }
-
     } else {
         ui->camSelector->addItem("no video inputs present");
     }
@@ -291,13 +308,18 @@ void RoboShell::videoTask()
     QPointF vector;
     if ((m_openCam > -1) && m_cams->isFrameNew(m_openCam)) {
         m_cams->getPixels(m_openCam, m_frame.bits(), true, true);
+
+        QImage deinterlaced = ui->deinterlace->isChecked()
+                ? m_frame.scaled(m_frame.size()/2)
+                : m_frame;
+
+        QImage gray = toGrayScale(deinterlaced);
+        if (ui->normalize->isChecked())
+            normalizeGrayscale(gray);
+
         ui->video->setPixmap(
                     QPixmap::fromImage(
-                        m_frame.scaledToWidth(320)));
-
-        QImage deinterlaced =
-                m_frame.scaled(m_frame.size()/2);
-        QImage gray = toGrayScale(deinterlaced);
+                        gray.scaledToWidth(320)));
 
         if (m_faceTracker) {
             QList<QRect> faces;
@@ -315,17 +337,24 @@ void RoboShell::videoTask()
     emit faceDetected(vector);
 }
 
-void RoboShell::openCamera(int i)
+void RoboShell::openCamera()
 {
     if (m_openCam > -1)
         m_cams->stopDevice(m_openCam);
 
-    m_openCam = i;
+    m_openCam = ui->camSelector->currentIndex();
 
     if (m_openCam > -1) {
         m_cams->setIdealFramerate(m_openCam, 25);
         m_cams->setAutoReconnectOnFreeze(m_openCam,true,7);
-        m_cams->setupDevice(m_openCam/* ,320,240*/);
+
+        if (ui->resolution->currentIndex()) {
+            QStringList strs = ui->resolution->currentText().split('x');
+            Q_ASSERT(strs.length() == 2);
+            m_cams->setupDevice(m_openCam, strs[0].toInt(), strs[1].toInt());
+        } else
+            m_cams->setupDevice(m_openCam);
+
         m_frame = QImage(m_cams->getWidth(m_openCam),
                          m_cams->getHeight(m_openCam),
                          QImage::Format_RGB888);

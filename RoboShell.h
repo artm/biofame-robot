@@ -45,7 +45,7 @@ public slots:
     void motorsTask();
 
     void videoTask();
-    void openCamera(int i);
+    void openCamera();
     void openCamSettings();
 
     void log(QtMsgType type, const char * message);
