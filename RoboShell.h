@@ -38,14 +38,16 @@ signals:
     void faceDetected(QPointF force);
 
 public slots:
-    void close();
-    void open(int id = 0);
-    void toggleOpen(bool on);
-
-    void motorsTask();
-    void videoTask();
-
+    void closeMotors();
+    void openMotors(int id = 0);
+    void toggleOpenMotors(bool on);
     void stopAllAxes();
+    void motorsTask();
+
+    void videoTask();
+    void openCamera(int i);
+    void openCamSettings();
+
     void log(QtMsgType type, const char * message);
 
 protected:
@@ -53,14 +55,15 @@ protected:
 
     Ui::RoboShell *ui;
     int m_boardId;
-    QTimer * m_pollTimer, * m_videoTimer;
+    QTimer m_pollTimer, m_videoTimer;
 
     QStateMachine * m_automaton;
 
-    videoInput * m_videoInput;
+    videoInput * m_cams;
     QImage m_frame;
 
     FaceTracker * m_faceTracker;
+    int m_openCam;
 
     static void msgHandler(QtMsgType type, const char * message);
     static RoboShell * s_shell;

@@ -41,8 +41,8 @@ RoboShell::RoboShell(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RoboShell)
     , m_boardId(-1)
-    , m_videoTimer(0)
-    , m_videoInput(new videoInput)
+    , m_cams(new videoInput)
+    , m_openCam(-1)
 {
     ui->setupUi(this);
     ui->statusBar->installEventFilter(this);
@@ -52,7 +52,7 @@ RoboShell::RoboShell(QWidget *parent)
 
     m_faceTracker = FaceTracker::make();
 
-    connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpen(bool)));
+    connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpenMotors(bool)));
 
     ui->cameraPanel->setMotor( new Motor(m_boardId, CAMERA) );
     ui->armPanel->setMotor( new Motor(m_boardId, ARM) );
@@ -79,8 +79,7 @@ RoboShell::RoboShell(QWidget *parent)
     connect(ui->cameraPanel, SIGNAL(positionChanged(int)),
             ui->bodyPanel, SLOT(trackAxis(int)));
 
-    m_pollTimer = new QTimer(this);
-    connect(m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
+    connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
     buildStateMachine();
 
@@ -89,31 +88,40 @@ RoboShell::RoboShell(QWidget *parent)
     // the last thing to do: open the board and be ready
     ui->openControllerButton->setChecked(true);
 
-    // start capture...
-    int nCams = m_videoInput->listDevices();
+    // setup video input
+    connect(&m_videoTimer, SIGNAL(timeout()), SLOT(videoTask()));
+    connect(ui->camSelector, SIGNAL(activated(int)),
+            SLOT(openCamera(int)));
+    connect(ui->camSettings, SIGNAL(clicked()),
+            SLOT(openCamSettings()));
+    int nCams = m_cams->listDevices();
+    ui->camSelector->setEnabled(nCams);
+    ui->camSettings->setEnabled(nCams);
+    ui->camSelector->clear();
     if (nCams) {
-        m_videoInput->setupDevice(0,320,240);
-        m_frame = QImage(m_videoInput->getWidth(0),
-                         m_videoInput->getHeight(0),
-                         QImage::Format_RGB888);
-        m_videoTimer = new QTimer(this);
-        connect(m_videoTimer, SIGNAL(timeout()), SLOT(videoTask()));
-        m_videoTimer->start(50);
+        for(int i=0; i<nCams; ++i) {
+            ui->camSelector->addItem( m_cams->getDeviceName(i) );
+            if (nCams == 1)
+                openCamera(0);
+        }
+
+    } else {
+        ui->camSelector->addItem("no video inputs present");
     }
 }
 
 RoboShell::~RoboShell()
 {
     delete ui;
-    m_videoInput->stopDevice(0);
-    delete m_videoInput;
+    m_cams->stopDevice(0);
+    delete m_cams;
     if (m_boardId >= 0)
-        close();
+        closeMotors();
     if (m_faceTracker)
         delete m_faceTracker;
 }
 
-void RoboShell::close()
+void RoboShell::closeMotors()
 {
     if (m_boardId < 0)
         return;
@@ -132,13 +140,13 @@ void RoboShell::close()
 
     emit boardClosed();
 
-    m_pollTimer->stop();
+    m_pollTimer.stop();
 }
 
-void RoboShell::open(int id)
+void RoboShell::openMotors(int id)
 {
     Q_ASSERT( id >= 0 && id <= 15 );
-    close();
+    closeMotors();
     if (P1240MotDevOpen(id) != ERROR_SUCCESS) {
         qWarning() << "Motor controller wasn't open";
         return;
@@ -146,15 +154,15 @@ void RoboShell::open(int id)
     m_boardId = id;
     emit boardOpened();
 
-    m_pollTimer->start(POLL_PERIOD);
+    m_pollTimer.start(POLL_PERIOD);
 }
 
-void RoboShell::toggleOpen(bool on)
+void RoboShell::toggleOpenMotors(bool on)
 {
     if (on)
-        open();
+        openMotors();
     else
-        close();
+        closeMotors();
 
     ui->openControllerButton->setChecked( m_boardId >= 0 );
 }
@@ -281,8 +289,8 @@ bool RoboShell::eventFilter(QObject * obj, QEvent * e)
 void RoboShell::videoTask()
 {
     QPointF vector;
-    if (m_videoInput->isFrameNew(0)) {
-        m_videoInput->getPixels(0, m_frame.bits(), true, true);
+    if ((m_openCam > -1) && m_cams->isFrameNew(m_openCam)) {
+        m_cams->getPixels(m_openCam, m_frame.bits(), true, true);
         ui->video->setPixmap(
                     QPixmap::fromImage(
                         m_frame.scaledToWidth(320)));
@@ -305,4 +313,29 @@ void RoboShell::videoTask()
     ui->forceX->setValue(vector.x());
     ui->forceY->setValue(vector.y());
     emit faceDetected(vector);
+}
+
+void RoboShell::openCamera(int i)
+{
+    if (m_openCam > -1)
+        m_cams->stopDevice(m_openCam);
+
+    m_openCam = i;
+
+    if (m_openCam > -1) {
+        m_cams->setIdealFramerate(m_openCam, 25);
+        m_cams->setAutoReconnectOnFreeze(m_openCam,true,7);
+        m_cams->setupDevice(m_openCam/* ,320,240*/);
+        m_frame = QImage(m_cams->getWidth(m_openCam),
+                         m_cams->getHeight(m_openCam),
+                         QImage::Format_RGB888);
+        m_videoTimer.start(40);
+    }
+}
+
+void RoboShell::openCamSettings()
+{
+    if (ui->camSelector->isEnabled()) {
+        m_cams->showSettingsWindow(ui->camSelector->currentIndex());
+    }
 }
