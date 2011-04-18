@@ -32,6 +32,9 @@ public:
     bool circleReset() const { return m_circleReset; }
     void setCircleReset(bool reset) { m_circleReset = reset; }
 
+    // return estimated angle (-180,180) or 360 for wheels
+    float pose() const;
+
 signals:
     void in6_fall(); // input 6 transition from 1 to 0
     void in6_raise(); // input 6 transition from 0 to 1

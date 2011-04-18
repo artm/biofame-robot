@@ -7,6 +7,17 @@
 #include <QFinalState>
 #include <QSettings>
 
+#include <math.h>
+
+double shortestArcAngle(double angle) {
+    angle = fmod(angle, 360.0 ); // this is betwen -360 and 360
+    if (angle > 180.0)
+        angle -= 360.0;
+    else if (angle < -180.0)
+        angle += 360;
+    return angle;
+}
+
 AxisControlPanel::AxisControlPanel(QWidget *parent)
     : QGroupBox(parent)
     , ui(new Ui::AxisControlPanel)
@@ -238,7 +249,6 @@ void AxisControlPanel::setupInitCircleState(QState * init)
 void AxisControlPanel::resetPosition()
 {
     if (!m_motor) return;
-    qDebug() << "resetting position to 0";
     m_motor->setReg(Lcnt, 0);
 }
 
@@ -253,7 +263,7 @@ void AxisControlPanel::posToCircleLength()
 {
     if (!m_motor) return;
     m_circleLength = m_motor->getReg(Lcnt);
-    qDebug() << "new circle length:" << m_circleLength;
+    resetPosition();
 }
 
 void AxisControlPanel::track(double force)
@@ -329,5 +339,21 @@ void AxisControlPanel::loadSettings(QSettings& s, const QString &group)
     m_circleReset = m_circleLength != 0;
 
     s.endGroup();
+}
+
+float AxisControlPanel::pose() const
+{
+    if (!m_motor)
+        return 360.0;
+
+    if (!m_circleReset) {
+        qWarning() << "Arc pose not implemented yet";
+        return 360.0;
+    } else if (!m_circleLength) {
+        qWarning() << "Can't estimate pose yet - need calibration";
+        return 360.0;
+    }
+
+    return shortestArcAngle( 360.0 * (m_motor->getReg(Lcnt) + m_circleOffset) / m_circleLength );
 }
 
