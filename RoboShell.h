@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QStateMachine>
 
+#include <math.h>
+
 class FaceTracker;
 
 namespace Ui {
@@ -51,6 +53,8 @@ public slots:
     void loadSettings();
     void saveSettings();
     void log(QtMsgType type, const char * message);
+
+    void randomIndi();
 
 protected:
     virtual bool eventFilter(QObject *, QEvent *);

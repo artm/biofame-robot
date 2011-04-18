@@ -127,6 +127,10 @@ RoboShell::RoboShell(QWidget *parent)
     }
 
     loadSettings();
+
+    qWarning() << "FIXME remove this";
+    connect(ui->testInidis, SIGNAL(clicked()), SLOT(randomIndi()));
+    ui->forceYindi->setSymmetric(true);
 }
 
 RoboShell::~RoboShell()
@@ -277,8 +281,11 @@ void RoboShell::msgHandler(QtMsgType type, const char *message)
 
 void RoboShell::log(QtMsgType type, const char *message)
 {
-    if (!ui->log->isVisible())
+    if (!ui->log->isVisible()) {
+        // this shouldn't be necessary, but it is...
+        ui->statusBar->clearMessage();
         ui->statusBar->showMessage(message);
+    }
 
     QListWidgetItem * item = new QListWidgetItem(message);
     switch(type) {
@@ -414,4 +421,12 @@ void RoboShell::saveSettings()
     ui->bodyPanel->saveSettings(s, "Body");
     ui->wheelsPanel->saveSettings(s, "Wheels");
     s.endGroup();
+}
+
+void RoboShell::randomIndi()
+{
+    float v = (float)rand() / RAND_MAX * 2.0 - 1.0;
+    ui->testInidis->setText(QString("%1").arg(v));
+    ui->forceXindi->setValue(v);
+    ui->forceYindi->setValue(v);
 }

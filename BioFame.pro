@@ -7,7 +7,8 @@ SOURCES += main.cpp\
         RoboShell.cpp \
     AxisControlPanel.cpp \
     Motor.cpp \
-    FaceTracker.cpp
+    FaceTracker.cpp \
+    SignalIndicator.cpp
 
 HEADERS  += RoboShell.h \
     stable.h \
@@ -15,7 +16,8 @@ HEADERS  += RoboShell.h \
     Motor.h \
     videoInput.h \
     videoInput.h \
-    FaceTracker.h
+    FaceTracker.h \
+    SignalIndicator.h
 
 FORMS    += RoboShell.ui \
     AxisControlPanel.ui
