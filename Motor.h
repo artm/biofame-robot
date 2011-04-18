@@ -12,6 +12,10 @@ public:
     enum EventId {
         STOPPED,
     };
+    enum Direction {
+        Cw = 0,
+        Ccw = 1,
+    };
 
     struct Event : public QEvent {
         Event(int axis, EventId id)
@@ -37,14 +41,16 @@ public:
     void setReg(int reg, int value);
 
     quint8 inputs();
+    Direction lastSetDirection() const { return m_lastSetDirection; }
+
 signals:
 
 public slots:
     void output(quint8 mask);
-    void cmove(bool cw);
+    void cmove(Direction dir);
     void rmove(int dx);
-    void goCw() { cmove(true); }
-    void goCcw() { cmove(false); }
+    void goCw() { cmove(Cw); }
+    void goCcw() { cmove(Ccw); }
     void stop();
 
     void setAxisPara(bool sCurve, int initSpeed, int driveSpeed, int maxDriveSpeed,
@@ -57,6 +63,7 @@ protected:
     int m_axisBit;
 
     AxisControlPanel * m_ui;
+    Direction m_lastSetDirection;
 };
 
 class MotorEventTransition : public QAbstractTransition {
@@ -68,6 +75,7 @@ protected:
     virtual void onTransition(QEvent *) {}
 
     int m_axis;
+
     Motor::EventId m_id;
 };
 

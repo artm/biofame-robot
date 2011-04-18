@@ -97,18 +97,21 @@ void Motor::output(quint8 mask)
     CHECK_RESULT( P1240MotDO( m_boardId, m_axisBit, mask) );
 }
 
-void Motor::cmove(bool cw)
+void Motor::cmove(Direction dir)
 {
     NOT_OPEN_RETURN();
-    // cw is 0 at axis bit, ccw is 1 there
-    CHECK_RESULT( P1240MotCmove( m_boardId, m_axisBit, cw ? 0 : m_axisBit) );
+    CHECK_RESULT( P1240MotCmove( m_boardId, m_axisBit, (dir == Ccw) ? m_axisBit : 0 ) );
+    m_lastSetDirection = dir;
 }
 
 void Motor::rmove(int dx)
 {
     NOT_OPEN_RETURN();
-    // cw is 0 at axis bit, ccw is 1 there
+    if (dx==0) return;
+    // third argument zero means relative
     CHECK_RESULT( P1240MotPtp( m_boardId, m_axisBit, 0, dx, dx, dx, dx) );
+    qWarning( "FIXME is CW negative?" );
+    m_lastSetDirection = (dx < 0) ? Cw : Ccw;
 }
 
 void Motor::stop()

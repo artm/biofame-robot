@@ -14,7 +14,7 @@ class Motor;
 class AxisControlPanel : public QGroupBox
 {
     Q_OBJECT
-
+    Q_PROPERTY( bool circleReset READ circleReset WRITE setCircleReset )
 public:
     explicit AxisControlPanel(QWidget *parent = 0);
     ~AxisControlPanel();
@@ -25,11 +25,16 @@ public:
     void output(int idx, bool state);
 
     // state machine primitives
-    void insertCircleCalibState(QState * parent);
-    void insertSeekState(QState * parent);
+    void setupCircleCalibState(QState * parent);
+    void setupSeekState(QState * parent);
+    void setupInitCircleState(QState * parent);
+
+    bool circleReset() const { return m_circleReset; }
+    void setCircleReset(bool reset) { m_circleReset = reset; }
 
 signals:
-    void in6_0(); // input 6 transition from 1 to 0
+    void in6_fall(); // input 6 transition from 1 to 0
+    void in6_raise(); // input 6 transition from 0 to 1
     void driveFinished();
     void positionChanged(int pos);
     void haveForce();
@@ -55,6 +60,7 @@ public slots:
     void displaySpeed(int speed);
 
     void resetPosition();
+    void posToCircleOffset();
     void posToCircleLength();
 
     void track(double force);
@@ -72,11 +78,15 @@ public slots:
 
     void checkForce();
 
+    void saveSettings(QSettings& s, const QString& group);
+    void loadSettings(QSettings& s, const QString& group);
+
 private:
     Ui::AxisControlPanel *ui;
     QButtonGroup * m_inputs, * m_outputs;
     Motor * m_motor;
-    int m_circleLength;
+    int m_circleLength, m_circleOffset; // in pulses
+    bool m_circleReset;
     quint8 m_cachedInputs;
     double m_trackingForce;
 

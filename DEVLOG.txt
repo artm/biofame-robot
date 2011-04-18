@@ -71,23 +71,27 @@ no separate thread yet, just a timer that polls everything important for every m
 
 pose estimation. this is only relevant to calibrated axes - for now the two 360 degree circular ones.
 
-[ ] calibration: assume initial pose is known (0)
-    [ ] when first hit the trigger remember distance from 0 to trigger and clear pos counter
-    [ ] when hit the trigger second time remember the circle length
-    [ ] save offset and length to the config file
-[ ] normal start up
-    [ ] load axes parameters
-    [ ] go until hit the trigger, from here on pose can be estimated
-    [ ] maintain the direction of every motion
-[ ] maintaining the counter
-    [ ] when moving in positive direction and the trigger goes 1-0 spring to 0
-    [ ] when moving in negative direction and the trigger goes 0-1 spring to circle length
-    [ ] convert pos to angle (pose estimation)
+[x] calibration: assume initial pose is known (0)
+    [x] when first hit the trigger remember distance from 0 to trigger and clear pos counter
+    [x] when hit the trigger second time remember the circle length
+    [x] save offset and length to the settings
+[x] maintaining the counter
+    [x] maintain the motor direction
+    [x] when moving in positive direction and the trigger goes 1-0 spring to 0
+    [x] when moving in negative direction and the trigger goes 0-1 spring to circle length
+[x] normal start up
+    [x] load axes parameters
+    [x] go until hit the trigger, from here on pose can be estimated
+    [x] maintain the direction of every motion
+[ ] convert pos to angle (pose estimation)
 
 * * *
 
 [ ] video + graphics on a QGraphicsView.
     [ ] May be a new QGraphicsItem for the video and its children in pixel coordinates...
 [ ] save/load setings
-
+    [x] video processing
+    [x] robot motion
+    [ ] robot calibration values
+    [ ] verilook
 

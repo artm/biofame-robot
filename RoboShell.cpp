@@ -248,16 +248,23 @@ void RoboShell::buildStateMachine()
     QState * calib = new QState(busy);
     idle->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
     calib->setChildMode(QState::ParallelStates);
-    ui->cameraPanel->insertCircleCalibState(calib);
-    ui->bodyPanel->insertCircleCalibState(calib);
+    ui->cameraPanel->setupCircleCalibState(new QState(calib));
+    ui->bodyPanel->setupCircleCalibState(new QState(calib));
     calib->addTransition(calib, SIGNAL(finished()), idle);
 
     QState * seek = new QState(busy);
     idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
     seek->setChildMode(QState::ParallelStates);
-    ui->cameraPanel->insertSeekState(seek);
-    ui->bodyPanel->insertSeekState(seek);
+    ui->cameraPanel->setupSeekState(new QState(seek));
+    ui->bodyPanel->setupSeekState(new QState(seek));
     seek->addTransition(seek, SIGNAL(finished()), idle);
+
+    QState * init = new QState(busy);
+    idle->addTransition(ui->initialize, SIGNAL(clicked()), init);
+    init->setChildMode(QState::ParallelStates);
+    ui->cameraPanel->setupInitCircleState( new QState(init) );
+    ui->bodyPanel->setupInitCircleState( new QState(init) );
+    init->addTransition(init, SIGNAL(finished()), idle);
 
     m_automaton->start();
 }
@@ -377,10 +384,17 @@ void RoboShell::loadSettings()
 {
     QSettings s;
 
-    s.beginGroup("camera");
+    s.beginGroup("Camera");
     ui->resolution->setCurrentIndex( s.value("resolution").toInt() );
     ui->normalize->setChecked( s.value("normalize").toBool() );
     ui->deinterlace->setChecked( s.value("deinterlace").toBool() );
+    s.endGroup();
+
+    s.beginGroup("Robot Motion");
+    ui->cameraPanel->loadSettings(s, "Camera");
+    ui->armPanel->loadSettings(s, "Arm");
+    ui->bodyPanel->loadSettings(s, "Body");
+    ui->wheelsPanel->loadSettings(s, "Wheels");
     s.endGroup();
 }
 
@@ -388,9 +402,16 @@ void RoboShell::saveSettings()
 {
     QSettings s;
 
-    s.beginGroup("camera");
+    s.beginGroup("Camera");
     s.setValue("resolution", ui->resolution->currentIndex());
     s.setValue("normalize", ui->normalize->isChecked());
     s.setValue("deinterlace", ui->deinterlace->isChecked());
+    s.endGroup();
+
+    s.beginGroup("Robot Motion");
+    ui->cameraPanel->saveSettings(s, "Camera");
+    ui->armPanel->saveSettings(s, "Arm");
+    ui->bodyPanel->saveSettings(s, "Body");
+    ui->wheelsPanel->saveSettings(s, "Wheels");
     s.endGroup();
 }

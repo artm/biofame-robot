@@ -5,12 +5,15 @@
 #include "Motor.h"
 
 #include <QFinalState>
+#include <QSettings>
 
 AxisControlPanel::AxisControlPanel(QWidget *parent)
     : QGroupBox(parent)
     , ui(new Ui::AxisControlPanel)
     , m_motor(0)
     , m_circleLength(0)
+    , m_circleOffset(0)
+    , m_circleReset(false)
     , m_cachedInputs(0)
     , m_trackingForce(0.0)
     , m_trackingCoeff(100.0)
@@ -87,21 +90,18 @@ void AxisControlPanel::syncOutputs()
 void AxisControlPanel::goCw()
 {
     if (!m_motor) return;
-    qDebug() << "go CW!";
     m_motor->goCw();
 }
 
 void AxisControlPanel::goCcw()
 {
     if (!m_motor) return;
-    qDebug() << "go CCW!";
     m_motor->goCcw();
 }
 
 void AxisControlPanel::stop()
 {
     if (!m_motor) return;
-    qDebug() << "stop!";
     m_motor->stop();
 }
 
@@ -175,18 +175,24 @@ void AxisControlPanel::poll()
         if (bit == old)
             continue;
         m_inputs->button(i)->setChecked( bit );
-        if ((i==6) && old)
-            emit in6_0();
+
+        if (i==6) { // circle reference trigger
+            if (old) {
+                if (m_circleReset && m_motor->lastSetDirection() == Motor::Cw)
+                    m_motor->setReg(Lcnt, 0);
+                emit in6_fall();
+            } else {
+                if (m_circleReset && m_motor->lastSetDirection() == Motor::Ccw)
+                    m_motor->setReg(Lcnt, m_circleLength);
+                emit in6_raise();
+            }
+        }
     }
     m_cachedInputs = di;
-
-    // check interrupt events...
 }
 
-void AxisControlPanel::insertCircleCalibState(QState *parent)
+void AxisControlPanel::setupCircleCalibState(QState * calib)
 {
-    QState * calib = new QState(parent);
-
     QState  * s1 = new QState(calib),
             * s2 = new QState(calib);
     QFinalState
@@ -194,33 +200,53 @@ void AxisControlPanel::insertCircleCalibState(QState *parent)
 
     calib->setInitialState( s1 );
 
-    s1->addTransition(this, SIGNAL(in6_0()), s2);
-    s2->addTransition(this, SIGNAL(in6_0()), s3);
+    s1->addTransition(this, SIGNAL(in6_fall()), s2);
+    s2->addTransition(this, SIGNAL(in6_fall()), s3);
 
-    connect(s1,SIGNAL(entered()),this,SLOT(goCw()));
-    connect(s2,SIGNAL(entered()),this,SLOT(resetPosition()));
-    connect(s3,SIGNAL(entered()),this,SLOT(posToCircleLength()));
+    connect(s1,SIGNAL(entered()), SLOT(goCw()));
+    connect(s2,SIGNAL(entered()), SLOT(posToCircleOffset()));
+    connect(s3,SIGNAL(entered()), SLOT(posToCircleLength()));
 }
 
-void AxisControlPanel::insertSeekState(QState *parent)
+void AxisControlPanel::setupSeekState(QState * seek)
 {
-    QState * seek = new QState(parent);
     QState * s1 = new QState(seek), * s2 = new QState(seek);
     seek->setInitialState(s1);
 
-    //s1->addTransition(RoboShell::instance(), SIGNAL(faceDetected(QPointF)), s2 );
     s1->addTransition(this, SIGNAL(haveForce()), s2);
     s2->addTransition(this, SIGNAL(driveFinished()), s1 );
 
     connect(s1, SIGNAL(entered()), this, SLOT(checkForce()));
     connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
+
+    s1->assignProperty(this, "circleReset", false);
+    s2->assignProperty(this, "circleProperty", true);
 }
+
+void AxisControlPanel::setupInitCircleState(QState * init)
+{
+    QState * s1 = new QState(init);
+    QFinalState * s2 = new QFinalState(init);
+     init->setInitialState(s1);
+    s1->addTransition(this,SIGNAL(in6_fall()), s2);
+    connect(s1, SIGNAL(entered()), SLOT(goCw()));
+    connect(s2, SIGNAL(entered()), SLOT(stop()));
+    setCircleReset(true);
+}
+
 
 void AxisControlPanel::resetPosition()
 {
     if (!m_motor) return;
     qDebug() << "resetting position to 0";
     m_motor->setReg(Lcnt, 0);
+}
+
+void AxisControlPanel::posToCircleOffset()
+{
+    if (!m_motor) return;
+    m_circleOffset = - m_motor->getReg(Lcnt);
+    resetPosition();
 }
 
 void AxisControlPanel::posToCircleLength()
@@ -275,5 +301,33 @@ void AxisControlPanel::checkForce()
 {
     if (fabs(m_trackingForce) > 0.05)
         emit haveForce();
+}
+
+void AxisControlPanel::saveSettings(QSettings& s, const QString &group)
+{
+    s.beginGroup(group);
+    s.setValue("trackingCoeff", ui->trackingCoeff->value());
+    s.setValue("desire", ui->desire->value());
+    s.setValue("desireScale", ui->desireScale->value());
+
+    if (m_circleLength) {
+        s.setValue("circleOffset", m_circleOffset);
+        s.setValue("circleLength", m_circleLength);
+    }
+    s.endGroup();
+}
+
+void AxisControlPanel::loadSettings(QSettings& s, const QString &group)
+{
+    s.beginGroup(group);
+    ui->trackingCoeff->setValue( s.value("trackingCoeff", 100).toDouble());
+    ui->desire->setValue(s.value("desire", 0).toInt());
+    ui->desireScale->setValue(s.value("desireScale", 1000).toDouble());
+
+    m_circleOffset = s.value("circleOffset", 0).toInt();
+    m_circleLength = s.value("circleLength", 0).toInt();
+    m_circleReset = m_circleLength != 0;
+
+    s.endGroup();
 }
 
