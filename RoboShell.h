@@ -48,6 +48,8 @@ public slots:
     void openCamera();
     void openCamSettings();
 
+    void loadSettings();
+    void saveSettings();
     void log(QtMsgType type, const char * message);
 
 protected:

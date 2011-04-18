@@ -86,4 +86,8 @@ pose estimation. this is only relevant to calibrated axes - for now the two 360 
 
 * * *
 
-video + graphics on a QGraphicsView. May be a new QGraphicsItem for the video and its children in pixel coordinates...
+[ ] video + graphics on a QGraphicsView.
+    [ ] May be a new QGraphicsItem for the video and its children in pixel coordinates...
+[ ] save/load setings
+
+

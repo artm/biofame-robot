@@ -125,10 +125,14 @@ RoboShell::RoboShell(QWidget *parent)
     } else {
         ui->camSelector->addItem("no video inputs present");
     }
+
+    loadSettings();
 }
 
 RoboShell::~RoboShell()
 {
+    saveSettings();
+
     delete ui;
     m_cams->stopDevice(0);
     delete m_cams;
@@ -367,4 +371,26 @@ void RoboShell::openCamSettings()
     if (ui->camSelector->isEnabled()) {
         m_cams->showSettingsWindow(ui->camSelector->currentIndex());
     }
+}
+
+void RoboShell::loadSettings()
+{
+    QSettings s;
+
+    s.beginGroup("camera");
+    ui->resolution->setCurrentIndex( s.value("resolution").toInt() );
+    ui->normalize->setChecked( s.value("normalize").toBool() );
+    ui->deinterlace->setChecked( s.value("deinterlace").toBool() );
+    s.endGroup();
+}
+
+void RoboShell::saveSettings()
+{
+    QSettings s;
+
+    s.beginGroup("camera");
+    s.setValue("resolution", ui->resolution->currentIndex());
+    s.setValue("normalize", ui->normalize->isChecked());
+    s.setValue("deinterlace", ui->deinterlace->isChecked());
+    s.endGroup();
 }
