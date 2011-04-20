@@ -105,3 +105,16 @@ can be found through PATH.
 
 [ ] Adjust robot's environment so Qt sdk is in PATH
 
+* * *
+
+Today (20 april) wheels logic:
+
+[x] make body emit its estimated angle (anything with circle parameters calibrated)
+[x] wheels slot trackAxisDirection( angle ), which should set up track force
+[x] make wheels react on trackAxisDirection only when in seek behavior
+
+this prompts for a Behavior concept:
+
+1. composite state for each axis
+2. particular combination of signal-slot connections active during particular states
+

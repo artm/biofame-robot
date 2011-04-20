@@ -96,6 +96,8 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this, SIGNAL(faceDetected(QPointF)), ui->cameraPanel, SLOT(trackX(QPointF)));
     connect(ui->cameraPanel, SIGNAL(positionChanged(int)),
             ui->bodyPanel, SLOT(trackAxis(int)));
+    connect(ui->bodyPanel, SIGNAL(angleChanged(double)),
+            ui->wheelsPanel, SLOT(trackAxisDirection(double)));
 
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
@@ -260,6 +262,7 @@ void RoboShell::buildStateMachine()
     seek->setChildMode(QState::ParallelStates);
     ui->cameraPanel->setupSeekState(new QState(seek));
     ui->bodyPanel->setupSeekState(new QState(seek));
+    ui->wheelsPanel->setupSeekState(new QState(seek));
     seek->addTransition(seek, SIGNAL(finished()), idle);
 
     QState * init = new QState(busy);

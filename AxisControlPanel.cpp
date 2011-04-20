@@ -167,6 +167,8 @@ void AxisControlPanel::displayPosition(int position)
     if (ui->position->value() != position) {
         ui->position->setValue(position);
         emit positionChanged(position);
+        if (m_circleLength)
+            emit angleChanged( estimatedAngle() );
     }
 }
 
@@ -304,7 +306,15 @@ void AxisControlPanel::setTrackCoeff(double coeff)
 
 void AxisControlPanel::trackAxis(int position)
 {
-    track( (float)(position - ui->desire->value()) / ui->desireScale->value() );
+    track( (double)(position - ui->desire->value()) / ui->desireScale->value() );
+}
+
+void AxisControlPanel::trackAxisDirection(double angle)
+{
+    double f = angle / 90;
+    if (f < -1.0) f = -2.0 - f;
+    else if (f > 1.0) f = 2.0 - f;
+    track(f);
 }
 
 void AxisControlPanel::checkForce()
@@ -341,7 +351,7 @@ void AxisControlPanel::loadSettings(QSettings& s, const QString &group)
     s.endGroup();
 }
 
-float AxisControlPanel::pose() const
+double AxisControlPanel::estimatedAngle() const
 {
     if (!m_motor)
         return 360.0;

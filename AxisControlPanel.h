@@ -33,7 +33,7 @@ public:
     void setCircleReset(bool reset) { m_circleReset = reset; }
 
     // return estimated angle (-180,180) or 360 for wheels
-    float pose() const;
+    double estimatedAngle() const;
 
 signals:
     void in6_fall(); // input 6 transition from 1 to 0
@@ -41,6 +41,8 @@ signals:
     void driveFinished();
     void positionChanged(int pos);
     void haveForce();
+
+    void angleChanged(double newAngle); // degrees
 
 public slots:
     void onBoardOpened();
@@ -72,6 +74,7 @@ public slots:
 
     // try to move so the other axis moves towards desired angle
     void trackAxis(int position);
+    void trackAxisDirection(double angle);
 
     void moveToForce();
 
