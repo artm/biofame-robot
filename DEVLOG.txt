@@ -151,3 +151,37 @@ this prompts for a Behavior concept:
 
 [ ] Adjust robot's environment so Qt sdk is in PATH
 
+* * *
+
+It's unclear where the continuous motion logic breaks. Often the axis won't start at all -
+is it due to bad self-consciousness (not knowing if the motor is running, breaking or stopped),
+bad face detection (sometimes it seems less reliable) or bad settings (too high or too low
+speeds - implement better checks / limits).
+
+In fact desired speed should be force*maxspeed. This time it'll never be too high and configuring it
+will be easier. The default motor parameters should be saved/restored together with the rest, or at
+least dv should be forced to the one in GUI before storing.
+
+Need more introspection tools - display current states etc per axis and may be on the same
+screen. Also would be nice to save a stream:
+
+Notes from paper...
+
+[ ] camera angle tracking is broken. find out why, something went wrong when I switched from Lcnt to
+    angle tracking
+
+[ ] face size should modulate face tracking force - the further from face, the smaller the face, the smaller
+    the force should be
+
+[ ] after face has disappeared the force should persist for some time then become 0 and emit "lostface()"
+
+[ ] Body slips a lot but rarely comes by the trigger. This leads to wheels going the wrong way and stopping at
+    the wrong moment. Possible solution is lower acceleration for the body which may lead to bad behavior.
+    Better solution would be a switch which is on facing forward and off backwards, or something like that.
+
+[ ] Motor control and face detection begin to conflict (especially with small steps motions), should really
+    only use continuous motion mostly.
+
+[ ] Need a screen grabber + all relevant tracking variables displayed on a single screen + current time displayed
+    and log with timestamps.
+
