@@ -99,3 +99,9 @@ pose estimation. this is only relevant to calibrated axes - for now the two 360 
 
 Switched to self built videoInput library. It is possible to load into Qt creator and
 build with MinGW, just had to add "C:\MinGW\bin" to PATH in project's environment.
+
+Similarly: to make the executable start no matter what need to make sure all .dll's it links
+can be found through PATH.
+
+[ ] Adjust robot's environment so Qt sdk is in PATH
+
