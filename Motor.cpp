@@ -102,6 +102,7 @@ void Motor::cmove(Direction dir)
     NOT_OPEN_RETURN();
     CHECK_RESULT( P1240MotCmove( m_boardId, m_axisBit, (dir == Ccw) ? m_axisBit : 0 ) );
     m_lastSetDirection = dir;
+    m_motionState = MotionCont;
 }
 
 void Motor::rmove(int dx)
@@ -110,8 +111,8 @@ void Motor::rmove(int dx)
     if (dx==0) return;
     // third argument zero means relative
     CHECK_RESULT( P1240MotPtp( m_boardId, m_axisBit, 0, dx, dx, dx, dx) );
-    qWarning( "FIXME is CW negative?" );
-    m_lastSetDirection = (dx < 0) ? Cw : Ccw;
+    m_lastSetDirection = (dx > 0) ? Cw : Ccw;
+    m_motionState = MotionPtp;
 }
 
 void Motor::stop()
@@ -119,6 +120,7 @@ void Motor::stop()
     NOT_OPEN_RETURN();
     // second axis bit means "slow down stop this axis"
     CHECK_RESULT( P1240MotStop( m_boardId, m_axisBit, m_axisBit) );
+    m_motionState = MotionBreaking;
 }
 
 int Motor::getReg(int reg)
@@ -172,5 +174,11 @@ void Motor::enableEvents(quint8 mask)
 {
     NOT_OPEN_RETURN();
     CHECK_RESULT( P1240MotEnableEvent(m_boardId, m_axisBit, mask, mask, mask, mask) );
+}
+
+void Motor::setSpeed(int speed)
+{
+    NOT_OPEN_RETURN();
+    CHECK_RESULT( P1240MotChgDV(m_boardId, m_axisBit, speed) );
 }
 

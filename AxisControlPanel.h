@@ -15,6 +15,7 @@ class AxisControlPanel : public QGroupBox
 {
     Q_OBJECT
     Q_PROPERTY( bool circleReset READ circleReset WRITE setCircleReset )
+    Q_PROPERTY( bool tracking READ isTracking WRITE setTracking )
 public:
     explicit AxisControlPanel(QWidget *parent = 0);
     ~AxisControlPanel();
@@ -27,10 +28,12 @@ public:
     // state machine primitives
     void setupCircleCalibState(QState * parent);
     void setupSeekState(QState * parent);
+    void setupContinuousTracking(QState * parent);
     void setupInitCircleState(QState * parent);
 
     bool circleReset() const { return m_circleReset; }
     void setCircleReset(bool reset) { m_circleReset = reset; }
+    bool isTracking() const { return m_tracking; }
 
     // return estimated angle (-180,180) or 360 for wheels
     double estimatedAngle() const;
@@ -78,6 +81,7 @@ public slots:
     void trackAxisDirection(double angle);
 
     void moveToForce();
+    void continuousTrack(double force);
 
     void parseEvents(quint8 mask);
 
@@ -89,6 +93,8 @@ public slots:
     void loadSettings(QSettings& s, const QString& group);
 
     void setDesireControlsVisible(bool on);
+    void setModulateSpeed(bool on) { m_modulateSpeed = on; }
+    void setTracking(bool on) { m_tracking = on; }
 
 private:
     Ui::AxisControlPanel *ui;
@@ -100,6 +106,8 @@ private:
     double m_trackingForce;
 
     double m_trackingCoeff;
+
+    bool m_modulateSpeed, m_tracking;
 };
 
 #endif // AXISCONTROLPANEL_H

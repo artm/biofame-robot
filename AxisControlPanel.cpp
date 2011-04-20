@@ -28,6 +28,8 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     , m_cachedInputs(0)
     , m_trackingForce(0.0)
     , m_trackingCoeff(100.0)
+    , m_modulateSpeed(false)
+    , m_tracking(false)
 {
     ui->setupUi(this);
 
@@ -230,6 +232,11 @@ void AxisControlPanel::setupCircleCalibState(QState * calib)
     calib->assignProperty(this, "circleReset", false);
 }
 
+void AxisControlPanel::setupContinuousTracking(QState *parent)
+{
+    parent->assignProperty(this, "tracking", true);
+}
+
 void AxisControlPanel::setupSeekState(QState * seek)
 {
     QState * s1 = new QState(seek), * s2 = new QState(seek);
@@ -241,6 +248,7 @@ void AxisControlPanel::setupSeekState(QState * seek)
     connect(s1, SIGNAL(entered()), this, SLOT(checkForce()));
     connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
 
+    seek->assignProperty(this, "tracking", true);
 }
 
 void AxisControlPanel::setupInitCircleState(QState * init)
@@ -279,7 +287,15 @@ void AxisControlPanel::track(double force)
 {
     m_trackingForce = std::max(-1.0, std::min( 1.0, force ) );
     emit forceFeedback(m_trackingForce);
-    checkForce();
+
+    if (!m_tracking)
+        return;
+
+    if (m_modulateSpeed) {
+        continuousTrack(force);
+    } else {
+        checkForce();
+    }
 }
 
 void AxisControlPanel::trackX(QPointF force)
@@ -302,7 +318,10 @@ void AxisControlPanel::moveToForce()
 
 void AxisControlPanel::parseEvents(quint8 mask)
 {
-    if (mask & 0x80) emit driveFinished();
+    if (mask & 0x80) {
+        emit driveFinished();
+        if (m_motor) m_motor->notifyStopped();
+    }
 }
 
 void AxisControlPanel::setTrackCoeff(double coeff)
@@ -381,5 +400,30 @@ void AxisControlPanel::setDesireControlsVisible(bool on)
     ui->desireLabel->setVisible(on);
     ui->desireScale->setVisible(on);
     ui->desireScaleLabel->setVisible(on);
+}
+
+void AxisControlPanel::continuousTrack(double force)
+{
+    if (!m_motor) return;
+
+    int desiredSpeed = force * m_trackingCoeff;
+    Motor::Direction desiredDirection = (desiredSpeed < 0) ? Motor::Ccw : Motor::Cw;
+    desiredSpeed = abs(desiredSpeed);
+
+    if (desiredSpeed < 50) {
+        // ensure we stop
+        if ((m_motor->motionState() == Motor::MotionCont)
+                || (m_motor->motionState() == Motor::MotionPtp))
+            stop();
+    } else {
+        // ensure we move in the right direction and set speed
+        m_motor->setSpeed(desiredSpeed); // driving speed
+        if ( m_motor->motionState() == Motor::MotionStopped ) {
+            m_motor->cmove(desiredDirection);
+        } else if ((m_motor->lastSetDirection() != desiredDirection)
+                   && m_motor->motionState() != Motor::MotionBreaking) {
+            m_motor->stop();
+        }
+    }
 }
 

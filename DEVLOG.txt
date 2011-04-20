@@ -101,8 +101,6 @@ build with MinGW, just had to add "C:\MinGW\bin" to PATH in project's environmen
 Similarly: to make the executable start no matter what need to make sure all .dll's it links
 can be found through PATH.
 
-[ ] Adjust robot's environment so Qt sdk is in PATH
-
 * * *
 
 Today (20 april) wheels logic:
@@ -125,14 +123,18 @@ this prompts for a Behavior concept:
 1. composite state for each axis
 2. particular combination of signal-slot connections active during particular states
 
-if time allows:
+* * *
+
+[ ] point to point motion doesn't work for wheels. consider an alternative.
+
+* * *
 
 [ ] init motors at startup
     - need to make sure it is called at the rigth moment
 
 [x] hide unused parameters from the gui
 [ ] some explanations in the gui
-[ ] force indicator for each axis
+[x] force indicator for each axis
 
 [ ] wander behavior
     [ ] describe in plain English
@@ -146,4 +148,6 @@ if time allows:
 
 [ ] video + graphics on a QGraphicsView.
     [ ] May be a new QGraphicsItem for the video and its children in pixel coordinates...
+
+[ ] Adjust robot's environment so Qt sdk is in PATH
 
