@@ -83,7 +83,7 @@ pose estimation. this is only relevant to calibrated axes - for now the two 360 
     [x] load axes parameters
     [x] go until hit the trigger, from here on pose can be estimated
     [x] maintain the direction of every motion
-[ ] convert pos to angle (pose estimation)
+[x] convert pos to angle (pose estimation)
 
 * * *
 
@@ -92,6 +92,10 @@ pose estimation. this is only relevant to calibrated axes - for now the two 360 
 [ ] save/load setings
     [x] video processing
     [x] robot motion
-    [ ] robot calibration values
+    [x] robot calibration values
     [ ] verilook
 
+* * *
+
+Switched to self built videoInput library. It is possible to load into Qt creator and
+build with MinGW, just had to add "C:\MinGW\bin" to PATH in project's environment.

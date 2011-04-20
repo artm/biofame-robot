@@ -14,8 +14,6 @@ HEADERS  += RoboShell.h \
     stable.h \
     AxisControlPanel.h \
     Motor.h \
-    videoInput.h \
-    videoInput.h \
     FaceTracker.h \
     SignalIndicator.h
 
@@ -33,7 +31,8 @@ INCLUDEPATH += "C:/Program Files/Advantech/Motion/PCI-1240/Examples/Include"
 LIBS += "C:/Program Files/Advantech/Motion/PCI-1240/Examples/VC/LIB/ADS1240.lib"
 
 # video input
-LIBS += "$$PWD/libvideoInput.a"
+INCLUDEPATH += "$$PWD/../videoInput"
+LIBS += -L"$$PWD/../build/videoInput" -lvideoInput
 LIBS += -luuid -lstrmiids -lole32 -loleaut32
 
 # verilook
