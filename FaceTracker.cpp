@@ -141,4 +141,28 @@ void FaceTracker::process(const QImage& frame, QList<QRect>& faces)
     NFree(vlFaces);
 }
 
+void FaceTracker::setMinIOD(int value)
+{
+    NInt v = (NInt)value;
+    NleSetParameter( m_extractor, NLEP_MIN_IOD, (const void *)&v );
+}
+
+void FaceTracker::setMaxIOD(int value)
+{
+    NInt v = (NInt)value;
+    NleSetParameter( m_extractor, NLEP_MAX_IOD, (const void *)&v );
+}
+
+void FaceTracker::setConfidenceThreshold(double value)
+{
+    NDouble v = (NDouble)value;
+    NleSetParameter( m_extractor, NLEP_FACE_CONFIDENCE_THRESHOLD, (const void *)&v );
+}
+
+void FaceTracker::setQualityThreshold(int value)
+{
+    NByte v = (NByte)value;
+    NleSetParameter( m_extractor, NLEP_FACE_CONFIDENCE_THRESHOLD, (const void *)&v );
+}
+
 

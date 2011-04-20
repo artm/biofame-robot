@@ -26,6 +26,10 @@ public:
     void setRecognize(bool on) { m_recognize = on; }
 
 public slots:
+    void setMinIOD(int value);
+    void setMaxIOD(int value);
+    void setConfidenceThreshold(double value);
+    void setQualityThreshold(int value);
 
 private:
     FaceTracker();

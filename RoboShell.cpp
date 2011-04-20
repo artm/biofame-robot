@@ -69,6 +69,12 @@ RoboShell::RoboShell(QWidget *parent)
     s_oldMsgHandler = qInstallMsgHandler(msgHandler);
 
     m_faceTracker = FaceTracker::make();
+    if (m_faceTracker) {
+        connect(ui->minIOD, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setMinIOD(int)));
+        connect(ui->maxIOD, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setMaxIOD(int)));
+        connect(ui->confThresh, SIGNAL(valueChanged(double)), m_faceTracker, SLOT(setConfidenceThreshold(double)));
+        connect(ui->qualityThresh, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setQualityThreshold(int)));
+    }
 
     connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpenMotors(bool)));
 
@@ -409,6 +415,13 @@ void RoboShell::loadSettings()
     ui->bodyPanel->loadSettings(s, "Body");
     ui->wheelsPanel->loadSettings(s, "Wheels");
     s.endGroup();
+
+    s.beginGroup("Face tracker");
+    ui->minIOD->setValue( s.value("minIOD", 5).toInt() );
+    ui->maxIOD->setValue( s.value("maxIOD", 320).toInt() );
+    ui->confThresh->setValue( s.value("confThresh", 52.0).toDouble() );
+    ui->qualityThresh->setValue( s.value("qualityThresh", 128).toInt() );
+    s.endGroup();
 }
 
 void RoboShell::saveSettings()
@@ -427,4 +440,12 @@ void RoboShell::saveSettings()
     ui->bodyPanel->saveSettings(s, "Body");
     ui->wheelsPanel->saveSettings(s, "Wheels");
     s.endGroup();
+
+    s.beginGroup("Face tracker");
+    s.setValue("minIOD", ui->minIOD->value());
+    s.setValue("maxIOD", ui->maxIOD->value());
+    s.setValue("confThresh", ui->confThresh->value());
+    s.setValue("qualityThresh", ui->qualityThresh->value());
+    s.endGroup();
+
 }
