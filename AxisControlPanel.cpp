@@ -30,6 +30,11 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     , m_trackingCoeff(100.0)
 {
     ui->setupUi(this);
+
+    ui->theForce->setSymmetric(true);
+    connect(this, SIGNAL(forceFeedback(double)), ui->theForce, SLOT(setValue(double)));
+    connect(this, SIGNAL(angleChanged(double)), ui->angle, SLOT(setValue(double)));
+
     m_inputs = new QButtonGroup(this);
     m_outputs = new QButtonGroup(this);
 
@@ -67,6 +72,8 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     connect(ui->accelerationRate, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
 
     connect(ui->trackingCoeff, SIGNAL(valueChanged(double)), SLOT(setTrackCoeff(double)));
+
+    setDesireControlsVisible(false);
 }
 
 AxisControlPanel::~AxisControlPanel()
@@ -219,6 +226,8 @@ void AxisControlPanel::setupCircleCalibState(QState * calib)
     connect(s1,SIGNAL(entered()), SLOT(goCw()));
     connect(s2,SIGNAL(entered()), SLOT(posToCircleOffset()));
     connect(s3,SIGNAL(entered()), SLOT(posToCircleLength()));
+
+    calib->assignProperty(this, "circleReset", false);
 }
 
 void AxisControlPanel::setupSeekState(QState * seek)
@@ -232,8 +241,6 @@ void AxisControlPanel::setupSeekState(QState * seek)
     connect(s1, SIGNAL(entered()), this, SLOT(checkForce()));
     connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
 
-    s1->assignProperty(this, "circleReset", false);
-    s2->assignProperty(this, "circleProperty", true);
 }
 
 void AxisControlPanel::setupInitCircleState(QState * init)
@@ -271,6 +278,7 @@ void AxisControlPanel::posToCircleLength()
 void AxisControlPanel::track(double force)
 {
     m_trackingForce = std::max(-1.0, std::min( 1.0, force ) );
+    emit forceFeedback(m_trackingForce);
     checkForce();
 }
 
@@ -304,9 +312,9 @@ void AxisControlPanel::setTrackCoeff(double coeff)
         ui->trackingCoeff->setValue(coeff);
 }
 
-void AxisControlPanel::trackAxis(int position)
+void AxisControlPanel::trackAxis(double angle)
 {
-    track( (double)(position - ui->desire->value()) / ui->desireScale->value() );
+    track( (double)(angle - ui->desire->value()) / ui->desireScale->value() );
 }
 
 void AxisControlPanel::trackAxisDirection(double angle)
@@ -319,7 +327,7 @@ void AxisControlPanel::trackAxisDirection(double angle)
 
 void AxisControlPanel::checkForce()
 {
-    if (fabs(m_trackingForce) > 0.05)
+    if (fabs(m_trackingForce) > 0.1)
         emit haveForce();
 }
 
@@ -365,5 +373,13 @@ double AxisControlPanel::estimatedAngle() const
     }
 
     return shortestArcAngle( 360.0 * (m_motor->getReg(Lcnt) + m_circleOffset) / m_circleLength );
+}
+
+void AxisControlPanel::setDesireControlsVisible(bool on)
+{
+    ui->desire->setVisible(on);
+    ui->desireLabel->setVisible(on);
+    ui->desireScale->setVisible(on);
+    ui->desireScaleLabel->setVisible(on);
 }
 

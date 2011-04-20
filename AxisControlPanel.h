@@ -41,6 +41,7 @@ signals:
     void driveFinished();
     void positionChanged(int pos);
     void haveForce();
+    void forceFeedback(double force);
 
     void angleChanged(double newAngle); // degrees
 
@@ -73,7 +74,7 @@ public slots:
     void trackY(QPointF force);
 
     // try to move so the other axis moves towards desired angle
-    void trackAxis(int position);
+    void trackAxis(double angle);
     void trackAxisDirection(double angle);
 
     void moveToForce();
@@ -86,6 +87,8 @@ public slots:
 
     void saveSettings(QSettings& s, const QString& group);
     void loadSettings(QSettings& s, const QString& group);
+
+    void setDesireControlsVisible(bool on);
 
 private:
     Ui::AxisControlPanel *ui;

@@ -18,6 +18,7 @@ signals:
 public slots:
     void setSymmetric(bool sym) { m_symmetric = sym; update(); }
     void setValue(float v) { m_value = v; update(); }
+    void setValue(double v) { setValue((float)v); }
 
 protected:
     void paintEvent(QPaintEvent *);

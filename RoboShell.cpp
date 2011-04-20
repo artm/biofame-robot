@@ -75,6 +75,7 @@ RoboShell::RoboShell(QWidget *parent)
     ui->cameraPanel->setMotor( new Motor(m_boardId, CAMERA) );
     ui->armPanel->setMotor( new Motor(m_boardId, ARM) );
     ui->bodyPanel->setMotor( new Motor(m_boardId, BODY) );
+    ui->bodyPanel->setDesireControlsVisible(true);
     ui->wheelsPanel->setMotor( new Motor(m_boardId, WHEELS) );
 
     connect(this,SIGNAL(boardOpened()), ui->cameraPanel, SLOT(onBoardOpened()));
@@ -94,8 +95,8 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
 
     connect(this, SIGNAL(faceDetected(QPointF)), ui->cameraPanel, SLOT(trackX(QPointF)));
-    connect(ui->cameraPanel, SIGNAL(positionChanged(int)),
-            ui->bodyPanel, SLOT(trackAxis(int)));
+    connect(ui->cameraPanel, SIGNAL(angleChanged(double)),
+            ui->bodyPanel, SLOT(trackAxis(double)));
     connect(ui->bodyPanel, SIGNAL(angleChanged(double)),
             ui->wheelsPanel, SLOT(trackAxisDirection(double)));
 
@@ -128,23 +129,24 @@ RoboShell::RoboShell(QWidget *parent)
         ui->camSelector->addItem("no video inputs present");
     }
 
-    loadSettings();
-
     ui->forceXindi->setSymmetric(true);
     ui->forceYindi->setSymmetric(true);
+
+    loadSettings();
 }
 
 RoboShell::~RoboShell()
 {
     saveSettings();
 
-    delete ui;
     m_cams->stopDevice(0);
     delete m_cams;
     if (m_boardId >= 0)
         closeMotors();
     if (m_faceTracker)
         delete m_faceTracker;
+
+    delete ui;
 }
 
 void RoboShell::closeMotors()
@@ -179,7 +181,7 @@ void RoboShell::openMotors(int id)
     }
     m_boardId = id;
     emit boardOpened();
-
+    ui->initialize->click();
     m_pollTimer.start(POLL_PERIOD);
 }
 
@@ -242,6 +244,7 @@ void RoboShell::stopAllAxes()
 void RoboShell::buildStateMachine()
 {
     m_automaton = new QStateMachine(this);
+    m_automaton->setGlobalRestorePolicy(QStateMachine::RestoreProperties);
 
     QState * idle = new QState(m_automaton);
     m_automaton->setInitialState(idle);
@@ -256,18 +259,17 @@ void RoboShell::buildStateMachine()
     ui->cameraPanel->setupCircleCalibState(new QState(calib));
     ui->bodyPanel->setupCircleCalibState(new QState(calib));
     calib->addTransition(calib, SIGNAL(finished()), idle);
+    connect(calib, SIGNAL(finished()), SLOT(saveSettings()));
 
-    QState * seek = new QState(busy);
+    QState * seek = new QState(QState::ParallelStates, busy);
     idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
-    seek->setChildMode(QState::ParallelStates);
     ui->cameraPanel->setupSeekState(new QState(seek));
     ui->bodyPanel->setupSeekState(new QState(seek));
     ui->wheelsPanel->setupSeekState(new QState(seek));
     seek->addTransition(seek, SIGNAL(finished()), idle);
 
-    QState * init = new QState(busy);
+    QState * init = new QState(QState::ParallelStates, busy);
     idle->addTransition(ui->initialize, SIGNAL(clicked()), init);
-    init->setChildMode(QState::ParallelStates);
     ui->cameraPanel->setupInitCircleState( new QState(init) );
     ui->bodyPanel->setupInitCircleState( new QState(init) );
     init->addTransition(init, SIGNAL(finished()), idle);
@@ -325,7 +327,6 @@ bool RoboShell::eventFilter(QObject * obj, QEvent * e)
 
 void RoboShell::videoTask()
 {
-    QPointF vector;
     if ((m_openCam > -1) && m_cams->isFrameNew(m_openCam)) {
         m_cams->getPixels(m_openCam, m_frame.bits(), true, true);
 
@@ -344,17 +345,20 @@ void RoboShell::videoTask()
         if (m_faceTracker) {
             QList<QRect> faces;
             m_faceTracker->process(gray, faces);
+            QPointF vector;
             if (faces.size()>0) {
                 vector = faces[0].center();
-                vector.setX( vector.x() / gray.width() - 0.5 );
-                vector.setY( vector.y() / gray.height() - 0.5 );
+                vector.setX( 2.0 * (vector.x() / gray.width() - 0.5) );
+                vector.setY( 2.0 * (vector.y() / gray.height() - 0.5) );
+
+                ui->forceXindi->setValue(vector.x());
+                ui->forceYindi->setValue(vector.y());
+
+                emit faceDetected(vector);
             }
         }
 
     }
-    ui->forceXindi->setValue(vector.x());
-    ui->forceYindi->setValue(vector.y());
-    emit faceDetected(vector);
 }
 
 void RoboShell::openCamera()

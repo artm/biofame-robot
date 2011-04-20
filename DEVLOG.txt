@@ -113,8 +113,29 @@ Today (20 april) wheels logic:
 [x] wheels slot trackAxisDirection( angle ), which should set up track force
 [x] make wheels react on trackAxisDirection only when in seek behavior
 
+[ ] init motors at startup
+    - need to make sure it is called at the rigth moment
+[x] axis tracking should use angle instead of the counter
+[x] face tracking force should go from -1 to 1
+[x] crash on exit (only on the robot)
+[x] body resets calibration on seek???
+
 this prompts for a Behavior concept:
 
 1. composite state for each axis
 2. particular combination of signal-slot connections active during particular states
 
+if time allows:
+
+[ ] hide unused parameters from the gui
+[ ] some explanations in the gui
+[ ] force indicator for each axis
+
+[ ] wander behavior
+    [ ] describe in plain English
+    [ ] implement
+    [ ] switches to seek if detects a face
+    [ ] seek behavior switches to wander if lost face for a long time
+    [ ] rename "seek" to "approach" and "wander" to "seek"
+[ ] leave behavior
+    - move away for some time (say 20 sec) then switch to wander
