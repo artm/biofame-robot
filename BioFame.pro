@@ -23,16 +23,16 @@ FORMS    += RoboShell.ui \
 PRECOMPILED_HEADER = stable.h
 
 # motors
-INCLUDEPATH += "C:/Program Files/Advantech/Motion/PCI-1240/Examples/Include"
+INCLUDEPATH += $$quote(C:/Program Files/Advantech/Motion/PCI-1240/Examples/Include)
 # unlike MinGW 4.5 (that I use when building with cmake)
 # the version of MinGW that comes with QtSDK (MinGW 4.4) can't
 # link against ADS1240.dll directly. Hence linking with this (interface
 # library or something like that).
-LIBS += "C:/Program Files/Advantech/Motion/PCI-1240/Examples/VC/LIB/ADS1240.lib"
+LIBS += $$quote(C:/Program Files/Advantech/Motion/PCI-1240/Examples/VC/LIB/ADS1240.lib)
 
 # video input
-INCLUDEPATH += "$$PWD/../videoInput"
-LIBS += -L"$$PWD/../build/videoInput" -lvideoInput
+INCLUDEPATH += $$quote($$PWD/../videoInput)
+LIBS += -L$$quote($$PWD/../build/videoInput-mingw) -lvideoInput
 LIBS += -luuid -lstrmiids -lole32 -loleaut32
 
 # verilook
@@ -40,7 +40,6 @@ INCLUDEPATH += $$quote(C:/Program Files/Neurotechnology/VeriLook 3.2 Standard SD
 LIBS += -L$$quote(C:/Program Files/Neurotechnology/VeriLook 3.2 Standard SDK/lib/Win32_x86)
 LIBS += -lNLExtractor.dll -lNMatcher.dll -lNTemplate.dll -lNCore.dll -lNImages.dll -lNLicensing.dll
 
-INCLUDEPATH += "../sdk/boost_1_44_0/include"
+INCLUDEPATH += $$quote($$PWD/../sdk/boost_1_44_0/include)
 
-OTHER_FILES += \
-    DEVLOG.txt
+OTHER_FILES += DEVLOG.txt

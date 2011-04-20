@@ -54,8 +54,6 @@ public slots:
     void saveSettings();
     void log(QtMsgType type, const char * message);
 
-    void randomIndi();
-
 protected:
     virtual bool eventFilter(QObject *, QEvent *);
 

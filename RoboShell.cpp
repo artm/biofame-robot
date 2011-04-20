@@ -128,8 +128,7 @@ RoboShell::RoboShell(QWidget *parent)
 
     loadSettings();
 
-    qWarning() << "FIXME remove this";
-    connect(ui->testInidis, SIGNAL(clicked()), SLOT(randomIndi()));
+    ui->forceXindi->setSymmetric(true);
     ui->forceYindi->setSymmetric(true);
 }
 
@@ -350,8 +349,8 @@ void RoboShell::videoTask()
         }
 
     }
-    ui->forceX->setValue(vector.x());
-    ui->forceY->setValue(vector.y());
+    ui->forceXindi->setValue(vector.x());
+    ui->forceYindi->setValue(vector.y());
     emit faceDetected(vector);
 }
 
@@ -421,12 +420,4 @@ void RoboShell::saveSettings()
     ui->bodyPanel->saveSettings(s, "Body");
     ui->wheelsPanel->saveSettings(s, "Wheels");
     s.endGroup();
-}
-
-void RoboShell::randomIndi()
-{
-    float v = (float)rand() / RAND_MAX * 2.0 - 1.0;
-    ui->testInidis->setText(QString("%1").arg(v));
-    ui->forceXindi->setValue(v);
-    ui->forceYindi->setValue(v);
 }
