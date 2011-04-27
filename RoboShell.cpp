@@ -61,7 +61,13 @@ RoboShell::RoboShell(QWidget *parent)
     , m_boardId(-1)
     , m_cams(new videoInput)
     , m_openCam(-1)
+    , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
+    m_logFile.open(QFile::WriteOnly);
+    if (m_logFile.isOpen()) {
+        m_log.setDevice(&m_logFile);
+    }
+
     ui->setupUi(this);
     ui->statusBar->installEventFilter(this);
     ui->log->hide();
@@ -324,6 +330,31 @@ void RoboShell::log(QtMsgType type, const char *message)
         delete ui->log->takeItem(0);
     }
 
+    if (m_logFile.isOpen()) {
+        QString tag;
+
+        switch(type) {
+        case QtWarningMsg:
+            tag = "W";
+            break;
+        case QtCriticalMsg:
+            tag = "E";
+            break;
+        case QtFatalMsg:
+            tag = "F";
+            break;
+        case QtDebugMsg:
+        default:
+            tag = "D";
+            break;
+        }
+
+        m_log << QString("%1 %2: %3\n")
+                 .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
+                 .arg(tag)
+                 .arg(message);
+        m_log.flush();
+    }
 }
 
 bool RoboShell::eventFilter(QObject * obj, QEvent * e)

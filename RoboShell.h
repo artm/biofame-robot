@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QStateMachine>
+#include <QTextStream>
 
 #include <math.h>
 
@@ -70,6 +71,9 @@ protected:
 
     FaceTracker * m_faceTracker;
     int m_openCam;
+
+    QFile m_logFile;
+    QTextStream m_log;
 
     static void msgHandler(QtMsgType type, const char * message);
     static RoboShell * s_shell;
