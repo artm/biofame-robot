@@ -184,10 +184,38 @@ Notes from paper...
 [ ] Motor control and face detection begin to conflict (especially with small steps motions), should really
     only use continuous motion mostly.
 
-[ ] Need a screen grabber + all relevant tracking variables displayed on a single screen + current time displayed
+[x] Need a screen grabber + all relevant tracking variables displayed on a single screen + current time displayed
     and log with timestamps.
-    [ ] install/setup screen grabber
+    [x] install/setup screen grabber
+        - MS Expression Encoder 4 appears to support screen capture, downloading
     [x] display the timestamp under the video...
     [x] Make sure tracking page opens by default
     [x] Give them titles
-    [ ] Log with timestamps
+    [x] Log with timestamps
+
+[x] Don't initialize on motor controller open -> otherwise it's impossible to calibrate
+
+[ ] body stops tracking camera angle once it has reached desire
+    - has probably to do with "driveFinished()" signal not arriving. or not?
+    - apparently not. here is the automaton:
+        s1->addTransition(this, SIGNAL(haveForce()), s2);
+        s2->addTransition(this, SIGNAL(driveFinished()), s1 );
+        connect(s1, SIGNAL(entered()), this, SLOT(checkForce()));
+        connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
+    ....
+    what's wrong with this picture? if s2 misses "driveFinished" it will never go to haveForce and hence never
+    start again.  this is not very robust. instead, should be like:
+
+    1. force arrives
+    2. if (tracking && ! moving && force is > threshold) - move
+
+    the problem with this approach is that when camera doesn't move it's new angle isn't sent to the body.
+    so, force isn't arriving constantly. well, may be it should.
+
+    fixed for the body didn't fix it for the camera: as soon as the face is lost it stops sending. so really, we
+    should know when we have stopped motion and check if we need to move then. that is: track(m_trackForce) upon
+    stop.
+
+[ ] on exit save lcnts and on open - restore them. this will make reinitialisation unnecessary when developing.
+
+--- motor is confused about its MotionState...

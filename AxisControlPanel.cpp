@@ -76,6 +76,7 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     connect(ui->accelerationRate, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
 
     connect(ui->trackingCoeff, SIGNAL(valueChanged(double)), SLOT(setTrackCoeff(double)));
+    connect(this, SIGNAL(driveFinished()), SLOT(reTrack()));
 
     setDesireControlsVisible(false);
 }
@@ -138,6 +139,8 @@ void AxisControlPanel::onBoardOpened()
     ui->acceleration->setValue( m_motor->getReg(0x304));
     ui->accelerationRate->setValue( m_motor->getReg(0x306));
 
+    m_motor->setReg(Lcnt, ui->position->value());
+
     m_motor->enableEvents(0xff); // all events
 }
 
@@ -185,6 +188,8 @@ void AxisControlPanel::displayPosition(int position)
 
 void AxisControlPanel::displaySpeed(int speed)
 {
+    if (speed == ui->speed->value())
+        return;
     ui->speed->setValue(speed);
 }
 
@@ -213,6 +218,8 @@ void AxisControlPanel::poll()
         }
     }
     m_cachedInputs = di;
+
+    reTrack();
 }
 
 void AxisControlPanel::setupCircleCalibState(QState * calib)
@@ -241,6 +248,7 @@ void AxisControlPanel::setupContinuousTracking(QState *parent)
 
 void AxisControlPanel::setupSeekState(QState * seek)
 {
+    /*
     QState * s1 = new QState(seek), * s2 = new QState(seek);
     seek->setInitialState(s1);
 
@@ -249,8 +257,10 @@ void AxisControlPanel::setupSeekState(QState * seek)
 
     connect(s1, SIGNAL(entered()), this, SLOT(checkForce()));
     connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
+    */
 
     seek->assignProperty(this, "tracking", true);
+    connect(seek, SIGNAL(entered()), SLOT(reTrack()));
 }
 
 void AxisControlPanel::setupInitCircleState(QState * init)
@@ -293,10 +303,19 @@ void AxisControlPanel::track(double force)
     if (!m_tracking)
         return;
 
+    qDebug() << title() << "tracking with force" << m_trackingForce;
+
     if (m_modulateSpeed) {
         continuousTrack(force);
     } else {
-        checkForce();
+        if (fabs(m_trackingForce) < 0.2) {
+            qDebug() << title() << "tracking force under the threshold, nothing to do";
+        } else if (m_motor->motionState() != Motor::MotionStopped) {
+            qDebug() << title() << "motor drives" << m_motor->motionState() << ", nothing to do";
+        } else {
+            qDebug() << title() << "move to force";
+            moveToForce();
+        }
     }
 }
 
@@ -312,7 +331,7 @@ void AxisControlPanel::trackY(QPointF force)
 
 void AxisControlPanel::trackAxis(double angle)
 {
-    track( shortestArcAngle(ui->desire->value() - angle) / ui->desireScale->value() );
+    track( shortestArcAngle(ui->desire->value() - angle) / 180.0 );
 }
 
 void AxisControlPanel::trackAxisDirection(double angle)
@@ -327,14 +346,17 @@ void AxisControlPanel::moveToForce()
 {
     if (!m_motor) return;
     int dx = (int)(m_trackingCoeff * m_trackingForce);
+    qDebug() << title() << "stepping according to tracking force, dx:" << dx;
     m_motor->rmove(dx);
 }
 
 void AxisControlPanel::parseEvents(quint8 mask)
 {
     if (mask & 0x80) {
+        qDebug() << title() << "drive finished event";
         emit driveFinished();
-        if (m_motor) m_motor->notifyStopped();
+        if (m_motor)
+            m_motor->notifyStopped();
     }
 }
 
@@ -347,8 +369,11 @@ void AxisControlPanel::setTrackCoeff(double coeff)
 
 void AxisControlPanel::checkForce()
 {
-    if (fabs(m_trackingForce) > 0.1)
-        emit haveForce();
+    if (fabs(m_trackingForce) > 0.1 && m_motor->motionState() == Motor::MotionStopped) {
+        //qDebug() << title() << "senses tracking force of magnitude:" << m_trackingForce;
+        //emit haveForce();
+        moveToForce();
+    }
 }
 
 void AxisControlPanel::saveSettings(QSettings& s, const QString &group)
@@ -362,6 +387,8 @@ void AxisControlPanel::saveSettings(QSettings& s, const QString &group)
         s.setValue("circleOffset", m_circleOffset);
         s.setValue("circleLength", m_circleLength);
     }
+
+    s.setValue("lcnt", ui->position->value());
     s.endGroup();
 }
 
@@ -375,6 +402,8 @@ void AxisControlPanel::loadSettings(QSettings& s, const QString &group)
     m_circleOffset = s.value("circleOffset", 0).toInt();
     m_circleLength = s.value("circleLength", 0).toInt();
     m_circleReset = m_circleLength != 0;
+
+    ui->position->setValue(s.value("lcnt", 0).toInt());
 
     s.endGroup();
 }

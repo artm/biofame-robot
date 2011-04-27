@@ -91,8 +91,8 @@ RoboShell::RoboShell(QWidget *parent)
     ui->wheelsPanel->setMotor( new Motor(m_boardId, WHEELS) );
 
     ui->cameraPanel->setModulateSpeed(true);
-    //ui->bodyPanel->setModulateSpeed(true);
-    //ui->wheelsPanel->setModulateSpeed(true);
+    ui->bodyPanel->setModulateSpeed(true);
+    ui->wheelsPanel->setModulateSpeed(true);
 
     connect(this,SIGNAL(boardOpened()), ui->cameraPanel, SLOT(onBoardOpened()));
     connect(this,SIGNAL(boardClosing()), ui->cameraPanel, SLOT(onBoardClosing()));
@@ -168,6 +168,43 @@ RoboShell::~RoboShell()
     delete ui;
 }
 
+void RoboShell::buildStateMachine()
+{
+    m_automaton = new QStateMachine(this);
+    m_automaton->setGlobalRestorePolicy(QStateMachine::RestoreProperties);
+
+    QState * idle = new QState(m_automaton);
+    m_automaton->setInitialState(idle);
+    connect(idle, SIGNAL(entered()), SLOT(stopAllAxes()));
+
+    QState * busy = new QState(m_automaton);
+    busy->addTransition(ui->panic, SIGNAL(clicked()), idle);
+
+    QState * calib = new QState(busy);
+    idle->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
+    calib->setChildMode(QState::ParallelStates);
+    ui->cameraPanel->setupCircleCalibState(new QState(calib));
+    ui->bodyPanel->setupCircleCalibState(new QState(calib));
+    calib->addTransition(calib, SIGNAL(finished()), idle);
+    connect(calib, SIGNAL(finished()), SLOT(saveSettings()));
+
+    QState * seek = new QState(QState::ParallelStates, busy);
+    idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
+    ui->cameraPanel->setupSeekState(new QState(seek));
+    //ui->cameraPanel->setupContinuousTracking(new QState(seek));
+    ui->bodyPanel->setupSeekState(new QState(seek));
+    ui->wheelsPanel->setupContinuousTracking(new QState(seek));
+    seek->addTransition(seek, SIGNAL(finished()), idle);
+
+    QState * init = new QState(QState::ParallelStates, busy);
+    idle->addTransition(ui->initialize, SIGNAL(clicked()), init);
+    ui->cameraPanel->setupInitCircleState( new QState(init) );
+    ui->bodyPanel->setupInitCircleState( new QState(init) );
+    init->addTransition(init, SIGNAL(finished()), idle);
+
+    m_automaton->start();
+}
+
 void RoboShell::closeMotors()
 {
     if (m_boardId < 0)
@@ -200,7 +237,6 @@ void RoboShell::openMotors(int id)
     }
     m_boardId = id;
     emit boardOpened();
-    ui->initialize->click();
     m_pollTimer.start(POLL_PERIOD);
 }
 
@@ -260,43 +296,6 @@ void RoboShell::stopAllAxes()
     ui->wheelsPanel->stop();
 }
 
-void RoboShell::buildStateMachine()
-{
-    m_automaton = new QStateMachine(this);
-    m_automaton->setGlobalRestorePolicy(QStateMachine::RestoreProperties);
-
-    QState * idle = new QState(m_automaton);
-    m_automaton->setInitialState(idle);
-    connect(idle, SIGNAL(entered()), SLOT(stopAllAxes()));
-
-    QState * busy = new QState(m_automaton);
-    busy->addTransition(ui->panic, SIGNAL(clicked()), idle);
-
-    QState * calib = new QState(busy);
-    idle->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
-    calib->setChildMode(QState::ParallelStates);
-    ui->cameraPanel->setupCircleCalibState(new QState(calib));
-    ui->bodyPanel->setupCircleCalibState(new QState(calib));
-    calib->addTransition(calib, SIGNAL(finished()), idle);
-    connect(calib, SIGNAL(finished()), SLOT(saveSettings()));
-
-    QState * seek = new QState(QState::ParallelStates, busy);
-    idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
-    //ui->cameraPanel->setupSeekState(new QState(seek));
-    ui->cameraPanel->setupContinuousTracking(new QState(seek));
-    ui->bodyPanel->setupSeekState(new QState(seek));
-    //ui->wheelsPanel->setupContinuousTracking(new QState(seek));
-    seek->addTransition(seek, SIGNAL(finished()), idle);
-
-    QState * init = new QState(QState::ParallelStates, busy);
-    idle->addTransition(ui->initialize, SIGNAL(clicked()), init);
-    ui->cameraPanel->setupInitCircleState( new QState(init) );
-    ui->bodyPanel->setupInitCircleState( new QState(init) );
-    init->addTransition(init, SIGNAL(finished()), idle);
-
-    m_automaton->start();
-}
-
 void RoboShell::msgHandler(QtMsgType type, const char *message)
 {
     s_shell->log(type, message);
@@ -325,10 +324,10 @@ void RoboShell::log(QtMsgType type, const char *message)
     }
 
     ui->log->addItem(item);
-    ui->log->scrollToBottom();
-    while (ui->log->count() > 500) {
+    while (ui->log->count() > 50) {
         delete ui->log->takeItem(0);
     }
+    ui->log->scrollToBottom();
 
     if (m_logFile.isOpen()) {
         QString tag;

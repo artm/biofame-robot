@@ -65,7 +65,7 @@ public slots:
                      int acceleration, int accelerationRate);
 
     void enableEvents(quint8 mask);
-    void notifyStopped() { m_motionState = MotionStopped; }
+    void notifyStopped();
 
 protected:
     int& m_boardId;

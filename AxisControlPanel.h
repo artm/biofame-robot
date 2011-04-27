@@ -73,6 +73,7 @@ public slots:
     void posToCircleLength();
 
     void track(double force);
+    void reTrack() { track(m_trackingForce); }
     void trackX(QPointF force);
     void trackY(QPointF force);
 

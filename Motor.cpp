@@ -85,6 +85,7 @@ Motor::Motor(int& boardId, int axisNum, QObject *parent)
     , m_boardId(boardId)
     , m_axisBit((1 << axisNum)) // double parens for Qt Creator's identation sake
     , m_ui(dynamic_cast<AxisControlPanel*>(parent))
+    , m_motionState(MotionStopped)
 {
 }
 
@@ -103,6 +104,7 @@ void Motor::cmove(Direction dir)
     CHECK_RESULT( P1240MotCmove( m_boardId, m_axisBit, (dir == Ccw) ? m_axisBit : 0 ) );
     m_lastSetDirection = dir;
     m_motionState = MotionCont;
+    qDebug() << "Entered cont motion state" << m_motionState;
 }
 
 void Motor::rmove(int dx)
@@ -113,14 +115,21 @@ void Motor::rmove(int dx)
     CHECK_RESULT( P1240MotPtp( m_boardId, m_axisBit, 0, dx, dx, dx, dx) );
     m_lastSetDirection = (dx > 0) ? Cw : Ccw;
     m_motionState = MotionPtp;
+    qDebug() << "Entered ptp motion state" << m_motionState;
 }
 
 void Motor::stop()
 {
     NOT_OPEN_RETURN();
+
+    if (m_motionState == MotionStopped)
+        return;
+
     // second axis bit means "slow down stop this axis"
+    qDebug() << "requesting to stop";
     CHECK_RESULT( P1240MotStop( m_boardId, m_axisBit, m_axisBit) );
     m_motionState = MotionBreaking;
+    qDebug() << "Entered breaking motion state" << m_motionState;
 }
 
 int Motor::getReg(int reg)
@@ -180,5 +189,11 @@ void Motor::setSpeed(int speed)
 {
     NOT_OPEN_RETURN();
     CHECK_RESULT( P1240MotChgDV(m_boardId, m_axisBit, speed) );
+}
+
+void Motor::notifyStopped()
+{
+    m_motionState = MotionStopped;
+    qDebug() << "Motion stopped" << m_motionState;
 }
 
