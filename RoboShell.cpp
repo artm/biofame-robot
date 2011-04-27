@@ -110,6 +110,9 @@ RoboShell::RoboShell(QWidget *parent)
     connect(ui->bodyPanel, SIGNAL(angleChanged(double)),
             ui->wheelsPanel, SLOT(trackAxisDirection(double)));
 
+    connect(&m_stampTimer, SIGNAL(timeout()), SLOT(updateTimeStamp()));
+    m_stampTimer.start(20);
+
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
     buildStateMachine();
@@ -464,4 +467,10 @@ void RoboShell::saveSettings()
     s.setValue("qualityThresh", ui->qualityThresh->value());
     s.endGroup();
 
+}
+
+void RoboShell::updateTimeStamp()
+{
+    QTime now = QTime::currentTime();
+    ui->timestamp->setText( now.toString("HH:mm:ss.zzz") );
 }

@@ -54,12 +54,14 @@ public slots:
     void saveSettings();
     void log(QtMsgType type, const char * message);
 
+    void updateTimeStamp();
+
 protected:
     virtual bool eventFilter(QObject *, QEvent *);
 
     Ui::RoboShell *ui;
     int m_boardId;
-    QTimer m_pollTimer, m_videoTimer;
+    QTimer m_pollTimer, m_videoTimer, m_stampTimer;
 
     QStateMachine * m_automaton;
 

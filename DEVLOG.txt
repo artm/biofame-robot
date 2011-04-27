@@ -186,4 +186,8 @@ Notes from paper...
 
 [ ] Need a screen grabber + all relevant tracking variables displayed on a single screen + current time displayed
     and log with timestamps.
-
+    [ ] install/setup screen grabber
+    [x] display the timestamp under the video...
+    [x] Make sure tracking page opens by default
+    [x] Give them titles
+    [ ] Log with timestamps

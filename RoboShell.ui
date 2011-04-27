@@ -106,50 +106,37 @@
         </widget>
        </item>
        <item>
-        <widget class="QTabWidget" name="tabWidget">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QWidget" name="cameraTab">
-          <attribute name="title">
-           <string>Camera</string>
-          </attribute>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="AxisControlPanel" name="cameraPanel"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="armTab">
-          <attribute name="title">
-           <string>Arm</string>
-          </attribute>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item>
-            <widget class="AxisControlPanel" name="armPanel"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="bodyTab">
-          <attribute name="title">
-           <string>Body</string>
-          </attribute>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="AxisControlPanel" name="bodyPanel"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="wheelsTab">
-          <attribute name="title">
-           <string>Wheels</string>
-          </attribute>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <item>
-            <widget class="AxisControlPanel" name="wheelsPanel"/>
-           </item>
-          </layout>
-         </widget>
+        <widget class="QWidget" name="widget" native="true">
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="AxisControlPanel" name="cameraPanel">
+            <property name="title">
+             <string>Camera</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="AxisControlPanel" name="armPanel">
+            <property name="title">
+             <string>Arm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="AxisControlPanel" name="bodyPanel">
+            <property name="title">
+             <string>Body</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="AxisControlPanel" name="wheelsPanel">
+            <property name="title">
+             <string>Wheels</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -231,7 +218,7 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
           <string>Face tracking force (x,y)</string>
@@ -255,7 +242,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="1">
+       <item row="10" column="1">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -268,35 +255,35 @@
          </property>
         </spacer>
        </item>
-       <item row="4" column="0">
+       <item row="5" column="0">
         <widget class="QLabel" name="minIODLabel">
          <property name="text">
           <string>min IOD</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
+       <item row="5" column="1">
         <widget class="QLabel" name="maxIODLabel">
          <property name="text">
           <string>max IOD</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
+       <item row="5" column="2">
         <widget class="QLabel" name="confidenceLabel">
          <property name="text">
           <string>conf. thresh.</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="3">
+       <item row="5" column="3">
         <widget class="QLabel" name="qualityLabel">
          <property name="text">
           <string>quality thresh.</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="0">
+       <item row="6" column="0">
         <widget class="QSpinBox" name="minIOD">
          <property name="minimum">
           <number>1</number>
@@ -312,7 +299,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="6" column="1">
         <widget class="QSpinBox" name="maxIOD">
          <property name="minimum">
           <number>50</number>
@@ -328,7 +315,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="2">
+       <item row="6" column="2">
         <widget class="QDoubleSpinBox" name="confThresh">
          <property name="maximum">
           <double>1000.000000000000000</double>
@@ -341,7 +328,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="3">
+       <item row="6" column="3">
         <widget class="QSpinBox" name="qualityThresh">
          <property name="maximum">
           <number>255</number>
@@ -354,7 +341,7 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="1">
+       <item row="8" column="1">
         <widget class="SignalIndicator" name="forceXindi" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -370,7 +357,7 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="2">
+       <item row="8" column="2">
         <widget class="SignalIndicator" name="forceYindi" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -399,7 +386,7 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
+       <item row="7" column="1">
         <widget class="QDoubleSpinBox" name="sizeCorrA">
          <property name="toolTip">
           <string>How square face size affects tracking force</string>
@@ -412,7 +399,7 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="3">
+       <item row="7" column="3">
         <widget class="QDoubleSpinBox" name="sizeCorrB">
          <property name="toolTip">
           <string>How (linear) face size tracking force</string>
@@ -428,7 +415,7 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="7" column="0">
         <widget class="QLabel" name="sizeCorrALabel">
          <property name="text">
           <string>Size corr. A</string>
@@ -438,10 +425,30 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="2">
+       <item row="7" column="2">
         <widget class="QLabel" name="sizeCorrBLabel">
          <property name="text">
           <string>B</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="4">
+        <widget class="QLabel" name="timestamp">
+         <property name="font">
+          <font>
+           <pointsize>16</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>00:00.000</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
