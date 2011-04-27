@@ -167,8 +167,9 @@ screen. Also would be nice to save a stream:
 
 Notes from paper...
 
-[ ] camera angle tracking is broken. find out why, something went wrong when I switched from Lcnt to
+[.] camera angle tracking is broken. find out why, something went wrong when I switched from Lcnt to
     angle tracking
+    - apparently the problem was with not normalizing the angle difference
 
 [ ] face size should modulate face tracking force - the further from face, the smaller the face, the smaller
     the force should be

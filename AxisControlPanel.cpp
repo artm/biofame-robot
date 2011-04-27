@@ -308,6 +308,18 @@ void AxisControlPanel::trackY(QPointF force)
     track(force.y());
 }
 
+void AxisControlPanel::trackAxis(double angle)
+{
+    track( shortestArcAngle(ui->desire->value() - angle) / ui->desireScale->value() );
+}
+
+void AxisControlPanel::trackAxisDirection(double angle)
+{
+    double f = angle / 90;
+    if (f < -1.0) f = -2.0 - f;
+    else if (f > 1.0) f = 2.0 - f;
+    track(f);
+}
 
 void AxisControlPanel::moveToForce()
 {
@@ -329,19 +341,6 @@ void AxisControlPanel::setTrackCoeff(double coeff)
     m_trackingCoeff = coeff;
     if (ui->trackingCoeff->value() != coeff)
         ui->trackingCoeff->setValue(coeff);
-}
-
-void AxisControlPanel::trackAxis(double angle)
-{
-    track( (double)(angle - ui->desire->value()) / ui->desireScale->value() );
-}
-
-void AxisControlPanel::trackAxisDirection(double angle)
-{
-    double f = angle / 90;
-    if (f < -1.0) f = -2.0 - f;
-    else if (f > 1.0) f = 2.0 - f;
-    track(f);
 }
 
 void AxisControlPanel::checkForce()
