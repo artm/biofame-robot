@@ -171,14 +171,15 @@ Notes from paper...
     angle tracking
     - apparently the problem was with not normalizing the angle difference
 
-[ ] face size should modulate face tracking force - the further from face, the smaller the face, the smaller
+[.] face size should modulate face tracking force - the further from face, the smaller the face, the smaller
     the force should be
+    [.] don't forget to save/load new parameters
 
 [ ] after face has disappeared the force should persist for some time then become 0 and emit "lostface()"
 
-[ ] Body slips a lot but rarely comes by the trigger. This leads to wheels going the wrong way and stopping at
+[.] Body slips a lot but rarely comes by the trigger. This leads to wheels going the wrong way and stopping at
     the wrong moment. Possible solution is lower acceleration for the body which may lead to bad behavior.
-    Better solution would be a switch which is on facing forward and off backwards, or something like that.
+    XXX just make sure body's acceleration value is low enough.
 
 [ ] Motor control and face detection begin to conflict (especially with small steps motions), should really
     only use continuous motion mostly.

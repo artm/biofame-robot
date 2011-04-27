@@ -358,9 +358,16 @@ void RoboShell::videoTask()
             m_faceTracker->process(gray, faces);
             QPointF vector;
             if (faces.size()>0) {
+                double distCorr = (double)faces[0].width() / gray.width();
+                distCorr =
+                        ui->sizeCorrA->value() * distCorr * distCorr
+                        + ui->sizeCorrB->value() * distCorr;
+
                 vector = faces[0].center();
                 vector.setX( 2.0 * (vector.x() / gray.width() - 0.5) );
                 vector.setY( 2.0 * (vector.y() / gray.height() - 0.5) );
+
+                vector *= distCorr;
 
                 ui->forceXindi->setValue(vector.x());
                 ui->forceYindi->setValue(vector.y());
@@ -422,6 +429,8 @@ void RoboShell::loadSettings()
     s.endGroup();
 
     s.beginGroup("Face tracker");
+    ui->sizeCorrA->setValue( s.value("sizeCorrA", 0.0).toDouble() );
+    ui->sizeCorrB->setValue( s.value("sizeCorrB", 2.0).toDouble() );
     ui->minIOD->setValue( s.value("minIOD", 5).toInt() );
     ui->maxIOD->setValue( s.value("maxIOD", 320).toInt() );
     ui->confThresh->setValue( s.value("confThresh", 52.0).toDouble() );
@@ -447,6 +456,8 @@ void RoboShell::saveSettings()
     s.endGroup();
 
     s.beginGroup("Face tracker");
+    s.setValue("sizeCorrA", ui->sizeCorrA->value());
+    s.setValue("sizeCorrB", ui->sizeCorrB->value());
     s.setValue("minIOD", ui->minIOD->value());
     s.setValue("maxIOD", ui->maxIOD->value());
     s.setValue("confThresh", ui->confThresh->value());
