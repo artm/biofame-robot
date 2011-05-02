@@ -414,10 +414,8 @@ double AxisControlPanel::estimatedAngle() const
         return 360.0;
 
     if (!m_circleReset) {
-        qWarning() << "Arc pose not implemented yet";
         return 360.0;
     } else if (!m_circleLength) {
-        qWarning() << "Can't estimate pose yet - need calibration";
         return 360.0;
     }
 

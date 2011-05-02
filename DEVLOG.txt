@@ -218,4 +218,28 @@ Notes from paper...
 
 [ ] on exit save lcnts and on open - restore them. this will make reinitialisation unnecessary when developing.
 
---- motor is confused about its MotionState...
+[ ] motor is confused about its MotionState...
+    don't matter now with continuous motion.
+
+* * *
+
+[ ] Have to implement a higher level automaton doing the search / approach
+
+1. search
+1.1. camera: oscilate
+1.2. arm (vertical): oscilate
+1.3. body: go 90 for some time then turn -90 for some time etc
+1.4. wheels: follow the body
+
+2. approach
+2.1. camera: follow face within some range (say +/- 60)
+2.2. body: try to keep camera at 0
+2.3. arm: follow face within the range
+2.4. wheels: follow the body
+
+3. switching between the two
+3.1. start in search
+3.2. faceDetected signal should move from search to approach
+3.3. each faceDetected restarts loseTimer
+3.4. loseTimer's timeout moves from approach to search
+
