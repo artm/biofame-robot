@@ -243,3 +243,5 @@ Notes from paper...
 3.3. each faceDetected restarts loseTimer
 3.4. loseTimer's timeout moves from approach to search
 
+[ ] force->speed should use max configured speed as force 1.0
+

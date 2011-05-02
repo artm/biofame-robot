@@ -43,9 +43,7 @@ signals:
     void in6_raise(); // input 6 transition from 0 to 1
     void driveFinished();
     void positionChanged(int pos);
-    void haveForce();
     void forceFeedback(double force);
-
     void angleChanged(double newAngle); // degrees
 
 public slots:
@@ -63,8 +61,8 @@ public slots:
     void setAxisPara();
 
     void poll();
-    // normally the axis will poll and display it own registers
-    // display slots are for registers that might be polled by the other modules
+    // normally the axis will poll and display its own registers
+    // display slots are for registers that might be polled by the shell
     void displayPosition(int position);
     void displaySpeed(int speed);
 
@@ -81,20 +79,12 @@ public slots:
     void trackAxis(double angle);
     void trackAxisDirection(double angle);
 
-    void moveToForce();
-    void continuousTrack(double force);
-
     void parseEvents(quint8 mask);
-
-    void setTrackCoeff(double coeff);
-
-    void checkForce();
 
     void saveSettings(QSettings& s, const QString& group);
     void loadSettings(QSettings& s, const QString& group);
 
     void setDesireControlsVisible(bool on);
-    void setModulateSpeed(bool on) { m_modulateSpeed = on; }
     void setTracking(bool on) { m_tracking = on; }
 
 private:
@@ -106,9 +96,7 @@ private:
     quint8 m_cachedInputs;
     double m_trackingForce;
 
-    double m_trackingCoeff;
-
-    bool m_modulateSpeed, m_tracking;
+    bool m_tracking;
 };
 
 #endif // AXISCONTROLPANEL_H

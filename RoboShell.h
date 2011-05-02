@@ -8,12 +8,11 @@
 #include <math.h>
 
 class FaceTracker;
+class videoInput;
 
 namespace Ui {
     class RoboShell;
 }
-
-class videoInput;
 
 class RoboShell : public QMainWindow
 {

@@ -44,7 +44,7 @@
       <enum>QFrame::Raised</enum>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <property name="tabSpacing">
       <number>0</number>
@@ -62,6 +62,9 @@
        <string>Tracking</string>
       </attribute>
       <layout class="QFormLayout" name="formLayout_3">
+       <property name="fieldGrowthPolicy">
+        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+       </property>
        <property name="horizontalSpacing">
         <number>1</number>
        </property>
@@ -126,28 +129,21 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="6" column="0">
         <widget class="QLabel" name="desireLabel">
          <property name="text">
-          <string>Axis track desire</string>
+          <string>Desired angle</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="trackingCoeffLabel">
-         <property name="text">
-          <string>Tracking coeff</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
+       <item row="6" column="1">
         <widget class="QDoubleSpinBox" name="desire">
+         <property name="toolTip">
+          <string>Desired angle of the other (tracked) axis</string>
+         </property>
          <property name="decimals">
           <number>1</number>
          </property>
@@ -162,45 +158,20 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QDoubleSpinBox" name="trackingCoeff">
-         <property name="decimals">
-          <number>2</number>
-         </property>
-         <property name="minimum">
-          <double>-1000000.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>1000000.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="value">
-          <double>1000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="desireScaleLabel">
+       <item row="4" column="0">
+        <widget class="QLabel" name="invertLabel">
          <property name="text">
-          <string>Axis track scale</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          <string>Invert</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="QDoubleSpinBox" name="desireScale">
-         <property name="decimals">
-          <number>2</number>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="invert">
+         <property name="toolTip">
+          <string>Positive force corresponds to negative speed and vice versa</string>
          </property>
-         <property name="maximum">
-          <double>1000000.000000000000000</double>
-         </property>
-         <property name="value">
-          <double>1000.000000000000000</double>
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>

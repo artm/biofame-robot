@@ -90,10 +90,6 @@ RoboShell::RoboShell(QWidget *parent)
     ui->bodyPanel->setDesireControlsVisible(true);
     ui->wheelsPanel->setMotor( new Motor(m_boardId, WHEELS) );
 
-    ui->cameraPanel->setModulateSpeed(true);
-    ui->bodyPanel->setModulateSpeed(true);
-    ui->wheelsPanel->setModulateSpeed(true);
-
     connect(this,SIGNAL(boardOpened()), ui->cameraPanel, SLOT(onBoardOpened()));
     connect(this,SIGNAL(boardClosing()), ui->cameraPanel, SLOT(onBoardClosing()));
     connect(this,SIGNAL(boardClosed()), ui->cameraPanel, SLOT(onBoardClosed()));
@@ -122,8 +118,6 @@ RoboShell::RoboShell(QWidget *parent)
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
     buildStateMachine();
-
-    ui->cameraPanel->setTrackCoeff(-500);
 
     // the last thing to do: open the board and be ready
     ui->openControllerButton->setChecked(true);

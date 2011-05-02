@@ -27,8 +27,6 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     , m_circleReset(false)
     , m_cachedInputs(0)
     , m_trackingForce(0.0)
-    , m_trackingCoeff(100.0)
-    , m_modulateSpeed(false)
     , m_tracking(false)
 {
     ui->setupUi(this);
@@ -75,7 +73,6 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     connect(ui->acceleration, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
     connect(ui->accelerationRate, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
 
-    connect(ui->trackingCoeff, SIGNAL(valueChanged(double)), SLOT(setTrackCoeff(double)));
     connect(this, SIGNAL(driveFinished()), SLOT(reTrack()));
 
     setDesireControlsVisible(false);
@@ -305,19 +302,30 @@ void AxisControlPanel::track(double force)
 
     qDebug() << title() << "tracking with force" << m_trackingForce;
 
-    if (m_modulateSpeed) {
-        continuousTrack(force);
+    if (!m_motor) return;
+
+    int desiredSpeed = force * ui->maxDriveSpeed->value() * (ui->invert->isChecked() ? -1 : 1);
+
+    Motor::Direction desiredDirection = (desiredSpeed < 0) ? Motor::Ccw : Motor::Cw;
+    desiredSpeed = abs(desiredSpeed);
+
+    if (desiredSpeed < 5) {
+        // ensure we stop
+        if ((m_motor->motionState() == Motor::MotionCont)
+                || (m_motor->motionState() == Motor::MotionPtp))
+            stop();
     } else {
-        if (fabs(m_trackingForce) < 0.2) {
-            qDebug() << title() << "tracking force under the threshold, nothing to do";
-        } else if (m_motor->motionState() != Motor::MotionStopped) {
-            qDebug() << title() << "motor drives" << m_motor->motionState() << ", nothing to do";
-        } else {
-            qDebug() << title() << "move to force";
-            moveToForce();
+        // ensure we move in the right direction and set speed
+        m_motor->setSpeed(desiredSpeed); // driving speed
+        if ( m_motor->motionState() == Motor::MotionStopped ) {
+            m_motor->cmove(desiredDirection);
+        } else if ((m_motor->lastSetDirection() != desiredDirection)
+                   && m_motor->motionState() != Motor::MotionBreaking) {
+            m_motor->stop();
         }
     }
 }
+
 
 void AxisControlPanel::trackX(QPointF force)
 {
@@ -342,14 +350,6 @@ void AxisControlPanel::trackAxisDirection(double angle)
     track(f);
 }
 
-void AxisControlPanel::moveToForce()
-{
-    if (!m_motor) return;
-    int dx = (int)(m_trackingCoeff * m_trackingForce);
-    qDebug() << title() << "stepping according to tracking force, dx:" << dx;
-    m_motor->rmove(dx);
-}
-
 void AxisControlPanel::parseEvents(quint8 mask)
 {
     if (mask & 0x80) {
@@ -360,28 +360,11 @@ void AxisControlPanel::parseEvents(quint8 mask)
     }
 }
 
-void AxisControlPanel::setTrackCoeff(double coeff)
-{
-    m_trackingCoeff = coeff;
-    if (ui->trackingCoeff->value() != coeff)
-        ui->trackingCoeff->setValue(coeff);
-}
-
-void AxisControlPanel::checkForce()
-{
-    if (fabs(m_trackingForce) > 0.1 && m_motor->motionState() == Motor::MotionStopped) {
-        //qDebug() << title() << "senses tracking force of magnitude:" << m_trackingForce;
-        //emit haveForce();
-        moveToForce();
-    }
-}
-
 void AxisControlPanel::saveSettings(QSettings& s, const QString &group)
 {
     s.beginGroup(group);
-    s.setValue("trackingCoeff", ui->trackingCoeff->value());
     s.setValue("desire", ui->desire->value());
-    s.setValue("desireScale", ui->desireScale->value());
+    s.setValue("invert", ui->invert->isChecked());
 
     if (m_circleLength) {
         s.setValue("circleOffset", m_circleOffset);
@@ -395,9 +378,8 @@ void AxisControlPanel::saveSettings(QSettings& s, const QString &group)
 void AxisControlPanel::loadSettings(QSettings& s, const QString &group)
 {
     s.beginGroup(group);
-    ui->trackingCoeff->setValue( s.value("trackingCoeff", 100).toDouble());
     ui->desire->setValue(s.value("desire", 0).toInt());
-    ui->desireScale->setValue(s.value("desireScale", 1000).toDouble());
+    ui->invert->setChecked(s.value("invert", false).toBool());
 
     m_circleOffset = s.value("circleOffset", 0).toInt();
     m_circleLength = s.value("circleLength", 0).toInt();
@@ -426,32 +408,5 @@ void AxisControlPanel::setDesireControlsVisible(bool on)
 {
     ui->desire->setVisible(on);
     ui->desireLabel->setVisible(on);
-    ui->desireScale->setVisible(on);
-    ui->desireScaleLabel->setVisible(on);
-}
-
-void AxisControlPanel::continuousTrack(double force)
-{
-    if (!m_motor) return;
-
-    int desiredSpeed = force * m_trackingCoeff;
-    Motor::Direction desiredDirection = (desiredSpeed < 0) ? Motor::Ccw : Motor::Cw;
-    desiredSpeed = abs(desiredSpeed);
-
-    if (desiredSpeed < 50) {
-        // ensure we stop
-        if ((m_motor->motionState() == Motor::MotionCont)
-                || (m_motor->motionState() == Motor::MotionPtp))
-            stop();
-    } else {
-        // ensure we move in the right direction and set speed
-        m_motor->setSpeed(desiredSpeed); // driving speed
-        if ( m_motor->motionState() == Motor::MotionStopped ) {
-            m_motor->cmove(desiredDirection);
-        } else if ((m_motor->lastSetDirection() != desiredDirection)
-                   && m_motor->motionState() != Motor::MotionBreaking) {
-            m_motor->stop();
-        }
-    }
 }
 
