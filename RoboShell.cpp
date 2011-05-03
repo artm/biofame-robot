@@ -196,9 +196,8 @@ void RoboShell::buildStateMachine()
     QState * seek = new QState(QState::ParallelStates, busy);
     idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
     ui->cameraPanel->setupSeekState(new QState(seek));
-    //ui->cameraPanel->setupContinuousTracking(new QState(seek));
     ui->bodyPanel->setupSeekState(new QState(seek));
-    ui->wheelsPanel->setupContinuousTracking(new QState(seek));
+    ui->wheelsPanel->setupSeekState(new QState(seek));
     seek->addTransition(seek, SIGNAL(finished()), idle);
 
     QState * init = new QState(QState::ParallelStates, busy);
