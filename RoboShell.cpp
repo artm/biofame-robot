@@ -5,6 +5,7 @@
 #include "videoInput.h"
 
 #include <QtCore>
+#include <QPainter>
 
 #include "FaceTracker.h"
 
@@ -142,8 +143,18 @@ RoboShell::RoboShell(QWidget *parent)
         ui->camSelector->addItem("no video inputs present");
     }
 
-    ui->forceXindi->setSymmetric(true);
-    ui->forceYindi->setSymmetric(true);
+    ui->camForce->setSymmetric(true);
+    connect(ui->cameraPanel, SIGNAL(forceFeedback(double)), ui->camForce, SLOT(setValue(double)));
+    ui->bodyForce->setSymmetric(true);
+    connect(ui->bodyPanel, SIGNAL(forceFeedback(double)), ui->bodyForce, SLOT(setValue(double)));
+    ui->armForce->setSymmetric(true);
+    connect(ui->armPanel, SIGNAL(forceFeedback(double)), ui->armForce, SLOT(setValue(double)));
+    ui->wheelsForce->setSymmetric(true);
+    connect(ui->wheelsPanel, SIGNAL(forceFeedback(double)), ui->wheelsForce, SLOT(setValue(double)));
+
+    connect(ui->cameraPanel, SIGNAL(angleChanged(double)), ui->camAngle, SLOT(setValue(double)));
+    connect(ui->bodyPanel, SIGNAL(angleChanged(double)), ui->bodyAngle, SLOT(setValue(double)));
+
 
     loadSettings();
 }
@@ -264,6 +275,11 @@ void RoboShell::motorsTask()
         ui->armPanel->displaySpeed(axisData[ARM]);
         ui->bodyPanel->displaySpeed(axisData[BODY]);
         ui->wheelsPanel->displaySpeed(axisData[WHEELS]);
+
+        ui->camSpeed->setValue( axisData[CAMERA] );
+        ui->armSpeed->setValue( axisData[ARM] );
+        ui->bodySpeed->setValue( axisData[BODY] );
+        ui->wheelsSpeed->setValue( axisData[WHEELS] );
     }
 
     quint8 event_masks[4];
@@ -369,16 +385,14 @@ void RoboShell::videoTask()
         m_cams->getPixels(m_openCam, m_frame.bits(), true, true);
 
         QImage deinterlaced = ui->deinterlace->isChecked()
-                ? m_frame.scaled(m_frame.size()/2)
+                ? m_frame.scaled(m_frame.width(), m_frame.height()/2)
                 : m_frame;
 
         QImage gray = toGrayScale(deinterlaced);
         if (ui->normalize->isChecked())
             normalizeGrayscale(gray);
 
-        ui->video->setPixmap(
-                    QPixmap::fromImage(
-                        gray.scaledToWidth(320)));
+        QImage display = gray.scaledToWidth(320).convertToFormat(QImage::Format_RGB32);
 
         if (m_faceTracker) {
             QList<QRect> faces;
@@ -396,12 +410,18 @@ void RoboShell::videoTask()
 
                 vector *= distCorr;
 
-                ui->forceXindi->setValue(vector.x());
-                ui->forceYindi->setValue(vector.y());
-
                 emit faceDetected(vector);
+
+                QPainter painter(&display);
+
+                double sx = (double) display.width() / gray.width();
+                double sy = (double) display.height() / gray.height();
+                QRectF displayFace(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
+                painter.fillRect( displayFace, QColor(0,255,0,150) );
             }
         }
+
+        ui->video->setPixmap( QPixmap::fromImage( display ) );
 
     }
 }

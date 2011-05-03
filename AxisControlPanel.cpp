@@ -33,10 +33,6 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
 
     ui->toolbox->setCurrentIndex(0);
 
-    ui->theForce->setSymmetric(true);
-    connect(this, SIGNAL(forceFeedback(double)), ui->theForce, SLOT(setValue(double)));
-    connect(this, SIGNAL(angleChanged(double)), ui->angle, SLOT(setValue(double)));
-
     m_inputs = new QButtonGroup(this);
     m_outputs = new QButtonGroup(this);
 
