@@ -392,7 +392,8 @@ void RoboShell::videoTask()
         if (ui->normalize->isChecked())
             normalizeGrayscale(gray);
 
-        QImage display = gray.scaledToWidth(320).convertToFormat(QImage::Format_RGB32);
+        QImage display = deinterlaced.scaled(320, 320*m_frame.height()/m_frame.width(),
+                                             Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
         if (m_faceTracker) {
             QList<QRect> faces;
