@@ -28,7 +28,6 @@ public:
     // state machine primitives
     void setupCircleCalibState(QState * parent);
     void setupSeekState(QState * parent);
-    void setupContinuousTracking(QState * parent);
     void setupInitCircleState(QState * parent);
 
     bool circleReset() const { return m_circleReset; }

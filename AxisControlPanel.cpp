@@ -234,24 +234,8 @@ void AxisControlPanel::setupCircleCalibState(QState * calib)
     calib->assignProperty(this, "circleReset", false);
 }
 
-void AxisControlPanel::setupContinuousTracking(QState *parent)
-{
-    parent->assignProperty(this, "tracking", true);
-}
-
 void AxisControlPanel::setupSeekState(QState * seek)
 {
-    /*
-    QState * s1 = new QState(seek), * s2 = new QState(seek);
-    seek->setInitialState(s1);
-
-    s1->addTransition(this, SIGNAL(haveForce()), s2);
-    s2->addTransition(this, SIGNAL(driveFinished()), s1 );
-
-    connect(s1, SIGNAL(entered()), this, SLOT(checkForce()));
-    connect(s2, SIGNAL(entered()), this, SLOT(moveToForce()));
-    */
-
     seek->assignProperty(this, "tracking", true);
     connect(seek, SIGNAL(entered()), SLOT(reTrack()));
 }
