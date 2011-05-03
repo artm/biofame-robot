@@ -2,12 +2,13 @@
 #include "ui_RoboShell.h"
 
 #include "Motor.h"
-#include "videoInput.h"
+#include "FaceTracker.h"
+#include "SoundSystem.h"
+
+#include <videoInput.h>
 
 #include <QtCore>
 #include <QPainter>
-
-#include "FaceTracker.h"
 
 // ms
 #define POLL_PERIOD 50
@@ -62,6 +63,7 @@ RoboShell::RoboShell(QWidget *parent)
     , m_boardId(-1)
     , m_cams(new videoInput)
     , m_openCam(-1)
+    , m_sound(new SoundSystem(this))
     , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
     m_logFile.open(QFile::WriteOnly);
@@ -74,6 +76,9 @@ RoboShell::RoboShell(QWidget *parent)
     ui->log->hide();
     s_shell = this;
     s_oldMsgHandler = qInstallMsgHandler(msgHandler);
+
+    m_sound->start();
+    connect(ui->geiger, SIGNAL(valueChanged(int)), m_sound, SLOT(setGeiger(int)));
 
     m_faceTracker = FaceTracker::make();
     if (m_faceTracker) {
@@ -161,6 +166,8 @@ RoboShell::RoboShell(QWidget *parent)
 
 RoboShell::~RoboShell()
 {
+    m_sound->quit();
+
     saveSettings();
 
     m_cams->stopDevice(0);

@@ -9,6 +9,7 @@
 
 class FaceTracker;
 class videoInput;
+class SoundSystem;
 
 namespace Ui {
     class RoboShell;
@@ -70,6 +71,8 @@ protected:
 
     FaceTracker * m_faceTracker;
     int m_openCam;
+
+    SoundSystem * m_sound;
 
     QFile m_logFile;
     QTextStream m_log;

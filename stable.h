@@ -22,6 +22,8 @@ extern "C" {
 
 #include <Ads1240.h>
 
+#include <fmod.h>
+#include <fmod_errors.h>
 }
 
 #endif // STABLE_H
