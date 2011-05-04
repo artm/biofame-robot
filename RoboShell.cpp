@@ -80,8 +80,8 @@ RoboShell::RoboShell(QWidget *parent)
     m_sound->start();
     connect(ui->geiger, SIGNAL(valueChanged(int)), m_sound, SLOT(setGeiger(int)));
 
-    m_faceTracker = FaceTracker::make();
-    if (m_faceTracker) {
+    m_faceTracker = new FaceTracker(this);
+    if (m_faceTracker->usesVerilook()) {
         connect(ui->minIOD, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setMinIOD(int)));
         connect(ui->maxIOD, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setMaxIOD(int)));
         connect(ui->confThresh, SIGNAL(valueChanged(double)), m_faceTracker, SLOT(setConfidenceThreshold(double)));
@@ -403,7 +403,7 @@ void RoboShell::videoTask()
 
         if (m_faceTracker) {
             QList<QRect> faces;
-            m_faceTracker->process(gray, faces);
+            m_faceTracker->findFaces(gray, faces);
             QPointF vector;
             if (faces.size()>0) {
                 double distCorr = (double)faces[0].width() / gray.width();

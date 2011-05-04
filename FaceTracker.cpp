@@ -3,79 +3,48 @@
 #include <QtDebug>
 #include <QImage>
 
-bool FaceTracker::s_gotLicense = false;
-int FaceTracker::s_refcount = 0;
-const char * FaceTracker::s_defaultPort = "5000";
-const char * FaceTracker::s_defaultServer = "/local";
-const char * FaceTracker::s_licenseList =
-"SingleComputerLicense:VLExtractor,SingleComputerLicense:VLMatcher";
+#include <NCore.h>
+#include <NLExtractor.h>
+#include <NLicensing.h>
 
-FaceTracker * FaceTracker::make()
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+const char * s_defaultPort = "5000";
+const char * s_defaultServer = "/local";
+const char * s_licenseList = "SingleComputerLicense:VLExtractor";
+
+FaceTracker::FaceTracker(QObject * parent)
+    : QObject(parent)
+    , m_extractor(0)
+    , m_cvDetector(0)
 {
-    if (!obtainLicense())
-        return 0;
-    s_refcount++;
-    return new FaceTracker();
-}
+    NBool available;
 
-FaceTracker::FaceTracker()
-    : m_detectEyes( true ), m_recognize(false)
-
-{
-    if (! isOk(NleCreate(&m_extractor),
-               "No verilook extractor created",
-               "Verilook extractor created") ) {
-        m_extractor = 0;
-    }
+    if ( ! isOk( NLicenseObtainA( s_defaultServer, s_defaultPort, s_licenseList, &available),
+               "NLicenseObtain failed")
+            || ! available
+            || ! isOk(NleCreate(&m_extractor),
+                   "No verilook extractor created",
+                   "Verilook extractor created") ) {
+            m_extractor = 0;
+            // set up the OpenCV detector
+            m_cvDetector = new cv::CascadeClassifier;
+            m_cvDetector->load("lbpcascade_frontalface.xml");
+        }
 }
 
 FaceTracker::~FaceTracker() {
     if (m_extractor) {
+        // clean up verilook stuff
         NleFree(m_extractor);
         m_extractor = 0;
+        isOk( NLicenseRelease((NWChar*)s_licenseList),
+                  "NLicenseRelease failed",
+                  "License successfully released" );
+    } else {
+        // clean up opencv detector
     }
-
-    if (--s_refcount == 0) {
-        releaseLicense();
-    }
-}
-
-bool FaceTracker::obtainLicense()
-{
-    if (!s_gotLicense) {
-        NBool available;
-
-        if ( !isOk( NLicenseObtainA(
-                       s_defaultServer,
-                       s_defaultPort,
-                       s_licenseList,
-                       &available),
-                   "NLicenseObtain failed") )
-            return false;
-
-
-        if (!available) {
-            qWarning() << QString("License for %1 not available.")
-                          .arg((char*)s_licenseList);
-        } else {
-            qDebug() << "License successfully obtained.";
-            s_gotLicense = true;
-        }
-    }
-
-    return s_gotLicense;
-}
-
-void FaceTracker::releaseLicense()
-{
-    if (!s_gotLicense) return;
-
-    if ( isOk( NLicenseRelease((NWChar*)s_licenseList),
-              "NLicenseRelease failed",
-              "License successfully released" ) ) {
-        s_gotLicense = false;
-    }
-
 }
 
 QString FaceTracker::errorString(NResult result)
@@ -113,54 +82,74 @@ bool larger(const QRect& a, const QRect& b)
     return a.width()*a.height() > b.width()*b.height();
 }
 
-void FaceTracker::process(const QImage& frame, QList<QRect>& faces)
+void FaceTracker::findFaces(const QImage& frame, QList<QRect>& faces)
 {
-    HNImage img;
-    if ( !isOk( NImageCreateWrapper(
-                   npfGrayscale,
-                   frame.width(), frame.height(), frame.bytesPerLine(),
-                   0.0, 0.0, (void*)frame.bits(), NFalse, &img),
-               "Coudn't wrap matrix for verilook"))
-        return;
+    if (m_extractor) {
+        HNImage img;
+        if ( !isOk( NImageCreateWrapper(
+                       npfGrayscale,
+                       frame.width(), frame.height(), frame.bytesPerLine(),
+                       0.0, 0.0, (void*)frame.bits(), NFalse, &img),
+                   "Coudn't wrap matrix for verilook"))
+            return;
 
-    /* detect faces */
-    int faceCount = 0;
-    NleFace * vlFaces;
-    NleDetectFaces( m_extractor, img, &faceCount, &vlFaces);
+        /* detect faces */
+        int faceCount = 0;
+        NleFace * vlFaces;
+        NleDetectFaces( m_extractor, img, &faceCount, &vlFaces);
 
-    // convert to rectangles
-    for(int i = 0; i<faceCount; ++i) {        
-        faces.push_back( QRect(vlFaces[i].Rectangle.X,
-                               vlFaces[i].Rectangle.Y,
-                               vlFaces[i].Rectangle.Width,
-                               vlFaces[i].Rectangle.Height));
+        // convert to rectangles
+        for(int i = 0; i<faceCount; ++i) {
+            faces.push_back( QRect(vlFaces[i].Rectangle.X,
+                                   vlFaces[i].Rectangle.Y,
+                                   vlFaces[i].Rectangle.Width,
+                                   vlFaces[i].Rectangle.Height));
+        }
+        NFree(vlFaces);
+    } else if (m_cvDetector) {
+        // wrap the frame
+        cv::Mat cvFrame( frame.height(), frame.width(), CV_8UC1, (void*)frame.bits(), frame.bytesPerLine());
+        // detect...
+        std::vector<cv::Rect> rects;
+
+        int maxSize = frame.height() * 2 / 3;
+
+        m_cvDetector->detectMultiScale( cvFrame, rects, 1.1, 3,
+                                       cv::CascadeClassifier::FIND_BIGGEST_OBJECT
+                                       | cv::CascadeClassifier::DO_ROUGH_SEARCH
+                                       | cv::CascadeClassifier::DO_CANNY_PRUNING,
+                                       cv::Size(10, 10), cv::Size(maxSize, maxSize));
+        // convert the results to qt rects
+        foreach(cv::Rect r, rects)
+            faces.push_back( QRect(r.x, r.y, r.width, r.height) );
     }
-
     qSort(faces.begin(), faces.end(), larger);
-
-    NFree(vlFaces);
 }
 
 void FaceTracker::setMinIOD(int value)
 {
+    if (!m_extractor) return;
     NInt v = (NInt)value;
     NleSetParameter( m_extractor, NLEP_MIN_IOD, (const void *)&v );
 }
 
 void FaceTracker::setMaxIOD(int value)
 {
+    if (!m_extractor) return;
     NInt v = (NInt)value;
     NleSetParameter( m_extractor, NLEP_MAX_IOD, (const void *)&v );
 }
 
 void FaceTracker::setConfidenceThreshold(double value)
 {
+    if (!m_extractor) return;
     NDouble v = (NDouble)value;
     NleSetParameter( m_extractor, NLEP_FACE_CONFIDENCE_THRESHOLD, (const void *)&v );
 }
 
 void FaceTracker::setQualityThreshold(int value)
 {
+    if (!m_extractor) return;
     NByte v = (NByte)value;
     NleSetParameter( m_extractor, NLEP_FACE_CONFIDENCE_THRESHOLD, (const void *)&v );
 }

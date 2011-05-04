@@ -8,7 +8,10 @@
 
 #include <boost/assign/list_of.hpp>
 
-#include "videoInput.h"
+#include <videoInput.h>
+
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #endif
 
