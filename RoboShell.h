@@ -62,21 +62,20 @@ protected:
 
     Ui::RoboShell *ui;
     int m_boardId;
-    QTimer m_pollTimer, m_videoTimer, m_stampTimer;
+    QTimer m_pollTimer, m_videoTimer;
 
     QStateMachine * m_automaton;
 
     videoInput * m_cams;
-    QImage m_frame;
+    int m_openCam;
 
     FaceTracker * m_faceTracker;
-    int m_openCam;
 
     SoundSystem * m_sound;
 
+    // Logger (TODO separate)
     QFile m_logFile;
     QTextStream m_log;
-
     static void msgHandler(QtMsgType type, const char * message);
     static RoboShell * s_shell;
     static QtMsgHandler s_oldMsgHandler;

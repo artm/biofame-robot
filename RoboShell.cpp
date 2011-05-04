@@ -118,8 +118,6 @@ RoboShell::RoboShell(QWidget *parent)
     connect(ui->bodyPanel, SIGNAL(angleChanged(double)),
             ui->wheelsPanel, SLOT(trackAxisDirection(double)));
 
-    connect(&m_stampTimer, SIGNAL(timeout()), SLOT(updateTimeStamp()));
-    m_stampTimer.start(20);
 
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
@@ -130,6 +128,7 @@ RoboShell::RoboShell(QWidget *parent)
 
     // setup video input
     connect(&m_videoTimer, SIGNAL(timeout()), SLOT(videoTask()));
+    connect(&m_videoTimer, SIGNAL(timeout()), SLOT(updateTimeStamp()));
     connect(ui->camSelector, SIGNAL(activated(int)), SLOT(openCamera()));
     connect(ui->resolution, SIGNAL(currentIndexChanged(int)), SLOT(openCamera()));
     connect(ui->camSettings, SIGNAL(clicked()), SLOT(openCamSettings()));
@@ -388,17 +387,20 @@ bool RoboShell::eventFilter(QObject * obj, QEvent * e)
 void RoboShell::videoTask()
 {
     if ((m_openCam > -1) && m_cams->isFrameNew(m_openCam)) {
-        m_cams->getPixels(m_openCam, m_frame.bits(), true, true);
+        QImage inputFrame  = QImage(m_cams->getWidth(m_openCam),
+                                    m_cams->getHeight(m_openCam),
+                                    QImage::Format_RGB888);
+        m_cams->getPixels(m_openCam, inputFrame.bits(), true, true);
 
         QImage deinterlaced = ui->deinterlace->isChecked()
-                ? m_frame.scaled(m_frame.width(), m_frame.height()/2)
-                : m_frame;
+                ? inputFrame.scaled(inputFrame.width(), inputFrame.height()/2)
+                : inputFrame;
 
         QImage gray = toGrayScale(deinterlaced);
         if (ui->normalize->isChecked())
             normalizeGrayscale(gray);
 
-        QImage display = deinterlaced.scaled(320, 320*m_frame.height()/m_frame.width(),
+        QImage display = deinterlaced.scaled(320, 320*inputFrame.height()/inputFrame.width(),
                                              Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
         if (m_faceTracker) {
@@ -451,9 +453,6 @@ void RoboShell::openCamera()
         } else
             m_cams->setupDevice(m_openCam);
 
-        m_frame = QImage(m_cams->getWidth(m_openCam),
-                         m_cams->getHeight(m_openCam),
-                         QImage::Format_RGB888);
         m_videoTimer.start(40);
     }
 }

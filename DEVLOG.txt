@@ -256,4 +256,14 @@ better tracking...
     [x] convert results to QRect list
 
 [ ] color or other tracker
+    [ ] state machine:
+        (a) searching for faces
+            (a) -> found face -> (b)
+        (b) track face (by color)
+            (b) -> lost face -> (a)
+        ( ) add some inertia (lost face but remember in which direction it went - continue
+            going there for some time
+
+* * *
+
 
