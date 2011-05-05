@@ -63,6 +63,7 @@ RoboShell::RoboShell(QWidget *parent)
     , m_boardId(-1)
     , m_cams(new videoInput)
     , m_openCam(-1)
+    , m_trackingState(FACE_DETECTION)
     , m_sound(new SoundSystem(this))
     , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
@@ -392,41 +393,67 @@ void RoboShell::videoTask()
                                     QImage::Format_RGB888);
         m_cams->getPixels(m_openCam, inputFrame.bits(), true, true);
 
+
         QImage deinterlaced = ui->deinterlace->isChecked()
                 ? inputFrame.scaled(inputFrame.width(), inputFrame.height()/2)
                 : inputFrame;
-
-        QImage gray = toGrayScale(deinterlaced);
-        if (ui->normalize->isChecked())
-            normalizeGrayscale(gray);
 
         QImage display = deinterlaced.scaled(320, 320*inputFrame.height()/inputFrame.width(),
                                              Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
         if (m_faceTracker) {
-            QList<QRect> faces;
-            m_faceTracker->findFaces(gray, faces);
-            QPointF vector;
-            if (faces.size()>0) {
-                double distCorr = (double)faces[0].width() / gray.width();
-                distCorr =
-                        ui->sizeCorrA->value() * distCorr * distCorr
-                        + ui->sizeCorrB->value() * distCorr;
+            switch(m_trackingState) {
 
-                vector = faces[0].center();
-                vector.setX( 2.0 * (vector.x() / gray.width() - 0.5) );
-                vector.setY( 2.0 * (vector.y() / gray.height() - 0.5) );
+            case FACE_DETECTION: {
+                QImage gray = toGrayScale(deinterlaced);
+                if (ui->normalize->isChecked())
+                    normalizeGrayscale(gray);
 
-                vector *= distCorr;
+                QList<QRect> faces;
+                m_faceTracker->findFaces(gray, faces);
+                QPointF vector;
+                if (faces.size()>0) {
+                    double distCorr = (double)faces[0].width() / gray.width();
+                    distCorr =
+                            ui->sizeCorrA->value() * distCorr * distCorr
+                            + ui->sizeCorrB->value() * distCorr;
 
-                emit faceDetected(vector);
+                    vector = faces[0].center();
+                    vector.setX( 2.0 * (vector.x() / gray.width() - 0.5) );
+                    vector.setY( 2.0 * (vector.y() / gray.height() - 0.5) );
 
-                QPainter painter(&display);
+                    vector *= distCorr;
 
-                double sx = (double) display.width() / gray.width();
-                double sy = (double) display.height() / gray.height();
-                QRectF displayFace(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
-                painter.fillRect( displayFace, QColor(0,255,0,150) );
+                    emit faceDetected(vector);
+
+                    QPainter painter(&display);
+
+                    double sx = (double) display.width() / gray.width();
+                    double sy = (double) display.height() / gray.height();
+                    QRectF displayFace(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
+                    painter.fillRect( displayFace, QColor(0,255,0,150) );
+                }
+
+                // convert faces[0] to deinteslaced coordinates
+                double sx = (double) deinterlaced.width() / gray.width();
+                double sy = (double) deinterlaced.height() / gray.height();
+                QRect face(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
+                m_trackable = m_faceTracker->startTracking(deinterlaced, face);
+                m_trackingState = TRACKING;
+                break;
+            }
+            case TRACKING:
+                if (!m_faceTracker->track(deinterlaced, m_trackable)) {
+                    m_trackingState = FACE_DETECTION;
+                } else {
+                    QRect face = m_faceTracker->trackableRect(m_trackable);
+                    QPainter painter(&display);
+                    double sx = (double) display.width() / deinterlaced.width();
+                    double sy = (double) display.height() / deinterlaced.height();
+                    QRectF displayFace(face.x()*sx, face.y()*sy, face.width()*sx, face.height()*sy);
+                    painter.fillRect( displayFace, QColor(0,255,0,150) );
+                }
+                break;
             }
         }
 

@@ -14,10 +14,17 @@ const char * s_defaultPort = "5000";
 const char * s_defaultServer = "/local";
 const char * s_licenseList = "SingleComputerLicense:VLExtractor";
 
+class Trackable {
+public:
+    QRect m_rect;
+    cv::Mat m_hist;
+};
+
 FaceTracker::FaceTracker(QObject * parent)
     : QObject(parent)
     , m_extractor(0)
     , m_cvDetector(0)
+    , m_trackable(0)
 {
     NBool available;
 
@@ -32,6 +39,7 @@ FaceTracker::FaceTracker(QObject * parent)
             m_cvDetector = new cv::CascadeClassifier;
             m_cvDetector->load("lbpcascade_frontalface.xml");
         }
+    m_trackable = new Trackable();
 }
 
 FaceTracker::~FaceTracker() {
@@ -152,6 +160,21 @@ void FaceTracker::setQualityThreshold(int value)
     if (!m_extractor) return;
     NByte v = (NByte)value;
     NleSetParameter( m_extractor, NLEP_FACE_CONFIDENCE_THRESHOLD, (const void *)&v );
+}
+
+Trackable * FaceTracker::startTracking(const QImage &frame, const QRect &face)
+{
+    return m_trackable;
+}
+
+bool FaceTracker::track(const QImage &frame, Trackable *trackable)
+{
+    return false;
+}
+
+QRect FaceTracker::trackableRect(const Trackable *trackable)
+{
+    return trackable->m_rect;
 }
 
 

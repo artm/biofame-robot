@@ -10,6 +10,7 @@
 class FaceTracker;
 class videoInput;
 class SoundSystem;
+class Trackable;
 
 namespace Ui {
     class RoboShell;
@@ -25,6 +26,11 @@ public:
         ARM,
         BODY,
         WHEELS
+    };
+
+    enum TrackerState {
+        FACE_DETECTION,
+        TRACKING,
     };
 
     explicit RoboShell(QWidget *parent = 0);
@@ -70,6 +76,9 @@ protected:
     int m_openCam;
 
     FaceTracker * m_faceTracker;
+    // new statefull tracking
+    TrackerState m_trackingState;
+    Trackable * m_trackable;
 
     SoundSystem * m_sound;
 
