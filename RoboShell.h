@@ -79,7 +79,6 @@ protected:
     FaceTracker * m_faceTracker;
     // new statefull tracking
     TrackerState m_trackingState;
-    Trackable * m_trackable;
 
     SoundSystem * m_sound;
 

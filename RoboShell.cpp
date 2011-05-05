@@ -443,23 +443,24 @@ void RoboShell::videoTask()
                     sx = (double) deinterlaced.width() / gray.width();
                     sy = (double) deinterlaced.height() / gray.height();
                     QRect face(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
-                    m_trackable = m_faceTracker->startTracking(deinterlaced, face);
+                    m_faceTracker->startTracking(deinterlaced, face);
                     m_trackingState = TRACKING;
                 }
 
                 break;
             }
             case TRACKING:
-                if (!m_faceTracker->track(deinterlaced, m_trackable)) {
+                if (!m_faceTracker->track(deinterlaced)) {
                     m_trackingState = FACE_DETECTION;
                 } else {
-                    QRect face = m_faceTracker->trackableRect(m_trackable);
+                    QRect face = m_faceTracker->trackWindow();
                     QPainter painter(&display);
                     double sx = (double) display.width() / deinterlaced.width();
                     double sy = (double) display.height() / deinterlaced.height();
                     QRectF displayFace(face.x()*sx, face.y()*sy, face.width()*sx, face.height()*sy);
                     painter.setPen( QColor(0,255,0,150) );
                     painter.drawRect( displayFace );
+                    ui->confidence->setValue( m_faceTracker->trackConfidence() );
                 }
                 break;
             }

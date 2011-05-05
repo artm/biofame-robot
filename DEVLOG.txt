@@ -264,15 +264,14 @@ better tracking...
             (b) -> lost face -> (a)
         ( ) add some inertia (lost face but remember in which direction it went - continue
             going there for some time
-  [ ] add smin/vmin/vmax mask
+  [x] add smin/vmin/vmax mask
   [ ] save/load smin/vmin/vmax
   [ ] any chance at displaying probabilities?
   [x] add "force reset to detection phase" button and API
-  [ ] calculate and display avg probability inside the tracked area
-  [ ] use that to trigger "lost" signal
+  [x] calculate and display avg probability inside the tracked area
+  [x] use that to trigger re-targeting
+  [ ] make the retrack threshold configurable
   [ ] voice (target acquired, target lost, etc)
-
-  [ ] try accumulating the histogram
 
 * * *
 

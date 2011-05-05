@@ -14,9 +14,10 @@ public:
 
     bool usesVerilook() const { return m_extractor != 0; }
 
-    Trackable * startTracking(const QImage& frame, const QRect& face);
-    bool track(const QImage &frame, Trackable * trackable);
-    QRect trackableRect(const Trackable * trackable);
+    void startTracking(const QImage& frame, const QRect& face);
+    bool track(const QImage &frame);
+    QRect trackWindow() const;
+    double trackConfidence() const;
 
 public slots:
     /* verilook specific */
@@ -42,8 +43,11 @@ private:
     cv::CascadeClassifier * m_cvDetector;
 
     /* trackable */
-    Trackable * m_trackable;
     int m_smin, m_vmin, m_vmax;
+    cv::Rect m_trackWindow;
+    cv::MatND m_trackHistogram;
+    double m_trackConfidence;
+    double m_retrackThreshold;
 };
 
 

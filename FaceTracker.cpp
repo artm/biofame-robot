@@ -16,35 +16,21 @@ const char * s_defaultPort = "5000";
 const char * s_defaultServer = "/local";
 const char * s_licenseList = "SingleComputerLicense:VLExtractor";
 
-// histogram settings
-#if 0
-const int g_channels[] = { 0, 1 }; // hue, saturation
-const int g_histSize[] = { 5, 5 }; // quantization of hue, saturation
-const float g_hranges[] = { 0, 180 }, g_sranges[] = { 0, 256 };
-const float * g_ranges[] = { g_hranges, g_sranges };
-#else
-// only hue
+// histogram settings: only hue
 const int g_channels[] = { 0 }; // hue, saturation
-const int g_histSize[] = { 5 };
+const int g_histSize[] = { 10 };
 const float g_hranges[] = { 0, 180 };
 const float * g_ranges[] = { g_hranges };
-#endif
 const int g_chCount = sizeof(g_channels) / sizeof(int);
-
-class Trackable {
-public:
-    cv::Rect m_rect;
-    cv::MatND m_hist;
-};
 
 FaceTracker::FaceTracker(QObject * parent)
     : QObject(parent)
     , m_extractor(0)
     , m_cvDetector(0)
-    , m_trackable(0)
     , m_smin(30)
     , m_vmin(10)
     , m_vmax(255)
+    , m_retrackThreshold(0.2)
 {
     NBool available;
 
@@ -59,7 +45,6 @@ FaceTracker::FaceTracker(QObject * parent)
             m_cvDetector = new cv::CascadeClassifier;
             m_cvDetector->load("lbpcascade_frontalface.xml");
         }
-    m_trackable = new Trackable();
 }
 
 FaceTracker::~FaceTracker() {
@@ -182,19 +167,9 @@ void FaceTracker::setQualityThreshold(int value)
     NleSetParameter( m_extractor, NLEP_FACE_CONFIDENCE_THRESHOLD, (const void *)&v );
 }
 
-Trackable * FaceTracker::startTracking(const QImage &frame, const QRect &face)
+void FaceTracker::startTracking(const QImage &frame, const QRect &face)
 {
-    // make a sub-area to initialize tracking with...
-#if 0
-    QSize smaller = face.size() / 4;
-    QRect focus(face.x()+smaller.width()/2,
-                face.y()+smaller.height()/2,
-                face.width()-smaller.width(),
-                face.height()-smaller.height());
-#endif
-    QRect focus = face;
-
-    cv::Mat sub = QtCv::QImage2CvMat(frame, focus), hsv;
+    cv::Mat sub = QtCv::QImage2CvMat(frame, face);
     // convert sub-area to HSV
     cv::cvtColor(sub, sub, CV_RGB2HSV);
     // find the HSV histogram
@@ -202,23 +177,18 @@ Trackable * FaceTracker::startTracking(const QImage &frame, const QRect &face)
              1, // one array
              g_channels,
              cv::Mat(), // do not use mask
-             m_trackable->m_hist,
+             m_trackHistogram,
              g_chCount,
              g_histSize,
              g_ranges,
              true, // the histogram is uniform
              false // don't accumulate
              );
-    //double maxVal;
-    //cv::minMaxLoc(m_trackable->m_hist, 0, &maxVal);
-    //cv::convertScaleAbs(m_trackable->m_hist, m_trackable->m_hist, maxVal ? 255.0 / maxVal : 0);
 
-    m_trackable->m_rect = QtCv::QRect2CvRect(face);
-
-    return m_trackable;
+    m_trackWindow = QtCv::QRect2CvRect(face);
 }
 
-bool FaceTracker::track(const QImage &frame, Trackable *trackable)
+bool FaceTracker::track(const QImage &frame)
 {
     // calculate back projection of trackable's histogram...
     cv::Mat cvFrame = QtCv::QImage2CvMat(frame);
@@ -229,23 +199,26 @@ bool FaceTracker::track(const QImage &frame, Trackable *trackable)
 
     cv::Mat prob(cvFrame.rows, cvFrame.cols, CV_8UC1);
     // mask out things that are too grey
-    cv::calcBackProject( &cvFrame, 1, g_channels, trackable->m_hist, prob, g_ranges);
+    cv::calcBackProject( &cvFrame, 1, g_channels, m_trackHistogram, prob, g_ranges);
     cv::bitwise_and(prob,mask,prob);
 
     // track colors
     cv::RotatedRect rotRect =
-            cv::CamShift(prob, trackable->m_rect,
+            cv::CamShift(prob, m_trackWindow,
                          cv::TermCriteria(cv::TermCriteria::COUNT|cv::TermCriteria::EPS,25,1));
 
+    m_trackWindow = rotRect.boundingRect() & cv::Rect(0,0,cvFrame.cols,cvFrame.rows);
+    m_trackConfidence = cv::mean(cv::Mat(prob, m_trackWindow))[0] / 255.0;
 
-    trackable->m_rect = rotRect.boundingRect();
-
-    return true;
+    return m_trackConfidence > m_retrackThreshold;
 }
 
-QRect FaceTracker::trackableRect(const Trackable *trackable)
+QRect FaceTracker::trackWindow() const
 {
-    return QtCv::CvRect2QRect(trackable->m_rect);
+    return QtCv::CvRect2QRect(m_trackWindow);
 }
 
-
+double FaceTracker::trackConfidence() const
+{
+    return m_trackConfidence;
+}
