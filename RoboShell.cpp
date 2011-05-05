@@ -87,7 +87,12 @@ RoboShell::RoboShell(QWidget *parent)
         connect(ui->maxIOD, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setMaxIOD(int)));
         connect(ui->confThresh, SIGNAL(valueChanged(double)), m_faceTracker, SLOT(setConfidenceThreshold(double)));
         connect(ui->qualityThresh, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setQualityThreshold(int)));
+
     }
+    connect(ui->resetTracker, SIGNAL(clicked()), SLOT(resetTracker()));
+    connect(ui->smin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setSMin(int)));
+    connect(ui->vmin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMin(int)));
+    connect(ui->vmax, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMax(int)));
 
     connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpenMotors(bool)));
 
@@ -159,7 +164,6 @@ RoboShell::RoboShell(QWidget *parent)
 
     connect(ui->cameraPanel, SIGNAL(angleChanged(double)), ui->camAngle, SLOT(setValue(double)));
     connect(ui->bodyPanel, SIGNAL(angleChanged(double)), ui->bodyAngle, SLOT(setValue(double)));
-
 
     loadSettings();
 }
@@ -398,8 +402,9 @@ void RoboShell::videoTask()
                 ? inputFrame.scaled(inputFrame.width(), inputFrame.height()/2)
                 : inputFrame;
 
-        QImage display = deinterlaced.scaled(320, 320*inputFrame.height()/inputFrame.width(),
-                                             Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        QImage display =
+                deinterlaced.scaled(320, 320*inputFrame.height()/inputFrame.width(),
+                                    Qt::IgnoreAspectRatio, Qt::SmoothTransformation).copy();
 
         if (m_faceTracker) {
             switch(m_trackingState) {
@@ -431,15 +436,17 @@ void RoboShell::videoTask()
                     double sx = (double) display.width() / gray.width();
                     double sy = (double) display.height() / gray.height();
                     QRectF displayFace(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
-                    painter.fillRect( displayFace, QColor(0,255,0,150) );
+                    painter.setPen( QColor(0,255,0,150) );
+                    painter.drawRect( displayFace );
+
+                    // convert faces[0] to deinteslaced coordinates
+                    sx = (double) deinterlaced.width() / gray.width();
+                    sy = (double) deinterlaced.height() / gray.height();
+                    QRect face(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
+                    m_trackable = m_faceTracker->startTracking(deinterlaced, face);
+                    m_trackingState = TRACKING;
                 }
 
-                // convert faces[0] to deinteslaced coordinates
-                double sx = (double) deinterlaced.width() / gray.width();
-                double sy = (double) deinterlaced.height() / gray.height();
-                QRect face(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
-                m_trackable = m_faceTracker->startTracking(deinterlaced, face);
-                m_trackingState = TRACKING;
                 break;
             }
             case TRACKING:
@@ -451,7 +458,8 @@ void RoboShell::videoTask()
                     double sx = (double) display.width() / deinterlaced.width();
                     double sy = (double) display.height() / deinterlaced.height();
                     QRectF displayFace(face.x()*sx, face.y()*sy, face.width()*sx, face.height()*sy);
-                    painter.fillRect( displayFace, QColor(0,255,0,150) );
+                    painter.setPen( QColor(0,255,0,150) );
+                    painter.drawRect( displayFace );
                 }
                 break;
             }

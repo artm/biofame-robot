@@ -62,6 +62,7 @@ public slots:
     void log(QtMsgType type, const char * message);
 
     void updateTimeStamp();
+    void resetTracker() { m_trackingState = FACE_DETECTION; }
 
 protected:
     virtual bool eventFilter(QObject *, QEvent *);

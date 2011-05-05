@@ -1,4 +1,5 @@
 #include "FaceTracker.h"
+#include "QtOpenCVHelpers.h"
 
 #include <QtDebug>
 #include <QImage>
@@ -9,15 +10,31 @@
 
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/video/tracking.hpp>
 
 const char * s_defaultPort = "5000";
 const char * s_defaultServer = "/local";
 const char * s_licenseList = "SingleComputerLicense:VLExtractor";
 
+// histogram settings
+#if 0
+const int g_channels[] = { 0, 1 }; // hue, saturation
+const int g_histSize[] = { 5, 5 }; // quantization of hue, saturation
+const float g_hranges[] = { 0, 180 }, g_sranges[] = { 0, 256 };
+const float * g_ranges[] = { g_hranges, g_sranges };
+#else
+// only hue
+const int g_channels[] = { 0 }; // hue, saturation
+const int g_histSize[] = { 5 };
+const float g_hranges[] = { 0, 180 };
+const float * g_ranges[] = { g_hranges };
+#endif
+const int g_chCount = sizeof(g_channels) / sizeof(int);
+
 class Trackable {
 public:
-    QRect m_rect;
-    cv::Mat m_hist;
+    cv::Rect m_rect;
+    cv::MatND m_hist;
 };
 
 FaceTracker::FaceTracker(QObject * parent)
@@ -25,6 +42,9 @@ FaceTracker::FaceTracker(QObject * parent)
     , m_extractor(0)
     , m_cvDetector(0)
     , m_trackable(0)
+    , m_smin(30)
+    , m_vmin(10)
+    , m_vmax(255)
 {
     NBool available;
 
@@ -164,17 +184,68 @@ void FaceTracker::setQualityThreshold(int value)
 
 Trackable * FaceTracker::startTracking(const QImage &frame, const QRect &face)
 {
+    // make a sub-area to initialize tracking with...
+#if 0
+    QSize smaller = face.size() / 4;
+    QRect focus(face.x()+smaller.width()/2,
+                face.y()+smaller.height()/2,
+                face.width()-smaller.width(),
+                face.height()-smaller.height());
+#endif
+    QRect focus = face;
+
+    cv::Mat sub = QtCv::QImage2CvMat(frame, focus), hsv;
+    // convert sub-area to HSV
+    cv::cvtColor(sub, sub, CV_RGB2HSV);
+    // find the HSV histogram
+    cv::calcHist( &sub,
+             1, // one array
+             g_channels,
+             cv::Mat(), // do not use mask
+             m_trackable->m_hist,
+             g_chCount,
+             g_histSize,
+             g_ranges,
+             true, // the histogram is uniform
+             false // don't accumulate
+             );
+    //double maxVal;
+    //cv::minMaxLoc(m_trackable->m_hist, 0, &maxVal);
+    //cv::convertScaleAbs(m_trackable->m_hist, m_trackable->m_hist, maxVal ? 255.0 / maxVal : 0);
+
+    m_trackable->m_rect = QtCv::QRect2CvRect(face);
+
     return m_trackable;
 }
 
 bool FaceTracker::track(const QImage &frame, Trackable *trackable)
 {
-    return false;
+    // calculate back projection of trackable's histogram...
+    cv::Mat cvFrame = QtCv::QImage2CvMat(frame);
+    cv::cvtColor(cvFrame,cvFrame,CV_RGB2HSV);
+
+    cv::Mat mask(cvFrame.rows, cvFrame.cols, CV_8UC1);
+    cv::inRange( cvFrame, cv::Scalar(0,m_smin,m_vmin), cv::Scalar(180,255,m_vmax), mask );
+
+    cv::Mat prob(cvFrame.rows, cvFrame.cols, CV_8UC1);
+    // mask out things that are too grey
+    cv::calcBackProject( &cvFrame, 1, g_channels, trackable->m_hist, prob, g_ranges);
+    cv::bitwise_and(prob,mask,prob);
+
+    // track colors
+    cv::RotatedRect rotRect =
+            cv::CamShift(prob, trackable->m_rect,
+                         cv::TermCriteria(cv::TermCriteria::COUNT|cv::TermCriteria::EPS,25,1));
+
+
+    trackable->m_rect = rotRect.boundingRect();
+
+    return true;
 }
 
 QRect FaceTracker::trackableRect(const Trackable *trackable)
 {
-    return trackable->m_rect;
+    return QtCv::CvRect2QRect(trackable->m_rect);
 }
 
 

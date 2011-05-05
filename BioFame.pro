@@ -9,7 +9,8 @@ SOURCES += main.cpp\
     Motor.cpp \
     FaceTracker.cpp \
     SignalIndicator.cpp \
-    SoundSystem.cpp
+    SoundSystem.cpp \
+    QtOpenCVHelpers.cpp
 
 HEADERS  += RoboShell.h \
     stable.h \
@@ -17,7 +18,8 @@ HEADERS  += RoboShell.h \
     Motor.h \
     FaceTracker.h \
     SignalIndicator.h \
-    SoundSystem.h
+    SoundSystem.h \
+    QtOpenCVHelpers.h
 
 FORMS    += RoboShell.ui \
     AxisControlPanel.ui
@@ -69,7 +71,7 @@ LIBS += -L$$PWD/../sdk/OpenCV-build-win32/lib
 #LIBS += -lopencv_highgui220
 #LIBS += -lopencv_legacy220
 #LIBS += -lopencv_ml220
-#LIBS += -lopencv_video220
+LIBS += -lopencv_video220
 LIBS += -lopencv_objdetect220
 LIBS += -lopencv_imgproc220
 LIBS += -lopencv_core220

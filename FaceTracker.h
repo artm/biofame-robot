@@ -25,6 +25,10 @@ public slots:
     void setConfidenceThreshold(double value);
     void setQualityThreshold(int value);
 
+    void setSMin( int smin ) { m_smin = smin; }
+    void setVMin( int vmin ) { m_smin = vmin; }
+    void setVMax( int vmax ) { m_smin = vmax; }
+
 private:
     /* verilook specific */
     HNLExtractor m_extractor;
@@ -39,6 +43,7 @@ private:
 
     /* trackable */
     Trackable * m_trackable;
+    int m_smin, m_vmin, m_vmax;
 };
 
 

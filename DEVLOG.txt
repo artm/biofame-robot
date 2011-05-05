@@ -256,13 +256,23 @@ better tracking...
     [x] convert results to QRect list
 
 [ ] color or other tracker
-    [ ] state machine:
+    - based on: http://www.cognotics.com/opencv/servo_2007_series/part_3/index.html
+    [x] state machine:
         (a) searching for faces
             (a) -> found face -> (b)
         (b) track face (by color)
             (b) -> lost face -> (a)
         ( ) add some inertia (lost face but remember in which direction it went - continue
             going there for some time
+  [ ] add smin/vmin/vmax mask
+  [ ] save/load smin/vmin/vmax
+  [ ] any chance at displaying probabilities?
+  [x] add "force reset to detection phase" button and API
+  [ ] calculate and display avg probability inside the tracked area
+  [ ] use that to trigger "lost" signal
+  [ ] voice (target acquired, target lost, etc)
+
+  [ ] try accumulating the histogram
 
 * * *
 
