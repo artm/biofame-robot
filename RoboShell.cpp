@@ -93,6 +93,8 @@ RoboShell::RoboShell(QWidget *parent)
     connect(ui->smin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setSMin(int)));
     connect(ui->vmin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMin(int)));
     connect(ui->vmax, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMax(int)));
+    connect(ui->retrackThreshold, SIGNAL(valueChanged(int)),
+            m_faceTracker, SLOT(setRetrackThreshold(int)));
 
     connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpenMotors(bool)));
 
@@ -524,6 +526,12 @@ void RoboShell::loadSettings()
     ui->maxIOD->setValue( s.value("maxIOD", 320).toInt() );
     ui->confThresh->setValue( s.value("confThresh", 52.0).toDouble() );
     ui->qualityThresh->setValue( s.value("qualityThresh", 128).toInt() );
+
+    ui->smin->setValue( s.value("smin", 30).toInt() );
+    ui->vmin->setValue( s.value("vmin", 10).toInt() );
+    ui->vmax->setValue( s.value("vmax", 255).toInt() );
+    ui->retrackThreshold->setValue( s.value("retrackThreshold", 25).toInt() );
+
     s.endGroup();
 }
 
@@ -551,6 +559,10 @@ void RoboShell::saveSettings()
     s.setValue("maxIOD", ui->maxIOD->value());
     s.setValue("confThresh", ui->confThresh->value());
     s.setValue("qualityThresh", ui->qualityThresh->value());
+    s.setValue("smin", ui->smin->value());
+    s.setValue("vmin", ui->vmin->value());
+    s.setValue("vmax", ui->vmax->value());
+    s.setValue("retrackThreshold", ui->retrackThreshold->value());
     s.endGroup();
 
 }

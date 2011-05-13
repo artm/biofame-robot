@@ -29,6 +29,12 @@ public slots:
     void setSMin( int smin ) { m_smin = smin; }
     void setVMin( int vmin ) { m_smin = vmin; }
     void setVMax( int vmax ) { m_smin = vmax; }
+    void setRetrackThreshold( int percent ) { m_retrackThreshold = 0.01 * percent; }
+
+    int smin() const { return m_smin; }
+    int vmin() const { return m_vmin; }
+    int vmax() const { return m_vmax; }
+    int retrackThreshold() const { return m_retrackThreshold; }
 
 private:
     /* verilook specific */

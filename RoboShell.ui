@@ -164,7 +164,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="0">
+       <item row="14" column="0">
         <widget class="QLabel" name="camForceLabel">
          <property name="text">
           <string>Camera:</string>
@@ -181,7 +181,7 @@
          </property>
         </widget>
        </item>
-       <item row="19" column="1">
+       <item row="20" column="1">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -280,7 +280,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="1">
+       <item row="14" column="1">
         <widget class="SignalIndicator" name="camForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -312,7 +312,7 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="1">
+       <item row="12" column="1">
         <widget class="QDoubleSpinBox" name="sizeCorrA">
          <property name="toolTip">
           <string>How square face size affects tracking force</string>
@@ -325,7 +325,7 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="0">
+       <item row="12" column="0">
         <widget class="QLabel" name="sizeCorrALabel">
          <property name="text">
           <string>Size corr.:</string>
@@ -355,7 +355,7 @@
          </property>
         </widget>
        </item>
-       <item row="15" column="1">
+       <item row="16" column="1">
         <widget class="SignalIndicator" name="bodyForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -371,7 +371,7 @@
          </property>
         </widget>
        </item>
-       <item row="16" column="1">
+       <item row="17" column="1">
         <widget class="SignalIndicator" name="wheelsForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -387,7 +387,7 @@
          </property>
         </widget>
        </item>
-       <item row="17" column="1">
+       <item row="18" column="1">
         <widget class="SignalIndicator" name="armForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -403,7 +403,7 @@
          </property>
         </widget>
        </item>
-       <item row="15" column="0">
+       <item row="16" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
           <string>Body:</string>
@@ -413,7 +413,7 @@
          </property>
         </widget>
        </item>
-       <item row="16" column="0">
+       <item row="17" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>Wheels:</string>
@@ -423,7 +423,7 @@
          </property>
         </widget>
        </item>
-       <item row="17" column="0">
+       <item row="18" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Arm:</string>
@@ -433,7 +433,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="2">
+       <item row="14" column="2">
         <widget class="QDoubleSpinBox" name="camAngle">
          <property name="enabled">
           <bool>false</bool>
@@ -446,7 +446,7 @@
          </property>
         </widget>
        </item>
-       <item row="15" column="2">
+       <item row="16" column="2">
         <widget class="QDoubleSpinBox" name="bodyAngle">
          <property name="enabled">
           <bool>false</bool>
@@ -459,7 +459,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="3">
+       <item row="14" column="3">
         <widget class="QSpinBox" name="camSpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -472,7 +472,7 @@
          </property>
         </widget>
        </item>
-       <item row="15" column="3">
+       <item row="16" column="3">
         <widget class="QSpinBox" name="bodySpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -485,7 +485,7 @@
          </property>
         </widget>
        </item>
-       <item row="16" column="3">
+       <item row="17" column="3">
         <widget class="QSpinBox" name="wheelsSpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -498,7 +498,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="1">
+       <item row="13" column="1">
         <widget class="QLabel" name="label">
          <property name="text">
           <string>Force</string>
@@ -508,7 +508,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="2">
+       <item row="13" column="2">
         <widget class="QLabel" name="label_6">
          <property name="text">
           <string>Angle</string>
@@ -518,7 +518,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="3">
+       <item row="13" column="3">
         <widget class="QLabel" name="label_7">
          <property name="text">
           <string>Speed</string>
@@ -528,7 +528,7 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="2">
+       <item row="12" column="2">
         <widget class="QDoubleSpinBox" name="sizeCorrB">
          <property name="toolTip">
           <string>How (linear) face size tracking force</string>
@@ -544,7 +544,7 @@
          </property>
         </widget>
        </item>
-       <item row="17" column="3">
+       <item row="18" column="3">
         <widget class="QSpinBox" name="armSpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -557,7 +557,7 @@
          </property>
         </widget>
        </item>
-       <item row="18" column="1" colspan="3">
+       <item row="19" column="1" colspan="3">
         <widget class="QSlider" name="geiger">
          <property name="maximum">
           <number>100</number>
@@ -567,7 +567,7 @@
          </property>
         </widget>
        </item>
-       <item row="18" column="0">
+       <item row="19" column="0">
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>Geiger:</string>
@@ -720,7 +720,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="1">
+       <item row="10" column="1" colspan="3">
         <widget class="SignalIndicator" name="confidence" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -733,6 +733,38 @@
            <width>0</width>
            <height>5</height>
           </size>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1" colspan="3">
+        <widget class="QSlider" name="retrackThreshold">
+         <property name="toolTip">
+          <string>Camshift confidence at which face is considered lost</string>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>20</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksAbove</enum>
+         </property>
+         <property name="tickInterval">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="retrackLabel">
+         <property name="text">
+          <string>Re-Track threshold:</string>
          </property>
         </widget>
        </item>
