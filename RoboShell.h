@@ -64,6 +64,8 @@ public slots:
     void updateTimeStamp();
     void resetTracker() { m_trackingState = FACE_DETECTION; }
 
+    void setDisplayMode(int i) { m_displayMode = i; }
+
 protected:
     virtual bool eventFilter(QObject *, QEvent *);
 
@@ -81,6 +83,8 @@ protected:
     TrackerState m_trackingState;
 
     SoundSystem * m_sound;
+
+    int m_displayMode;
 
     // Logger (TODO separate)
     QFile m_logFile;

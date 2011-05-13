@@ -65,6 +65,7 @@ RoboShell::RoboShell(QWidget *parent)
     , m_openCam(-1)
     , m_trackingState(FACE_DETECTION)
     , m_sound(new SoundSystem(this))
+    , m_displayMode(0)
     , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
     m_logFile.open(QFile::WriteOnly);
@@ -126,6 +127,7 @@ RoboShell::RoboShell(QWidget *parent)
     connect(ui->bodyPanel, SIGNAL(angleChanged(double)),
             ui->wheelsPanel, SLOT(trackAxisDirection(double)));
 
+    connect(ui->layerSelector, SIGNAL(activated(int)), SLOT(setDisplayMode(int)));
 
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
@@ -460,6 +462,13 @@ void RoboShell::videoTask()
                     double sx = (double) display.width() / deinterlaced.width();
                     double sy = (double) display.height() / deinterlaced.height();
                     QRectF displayFace(face.x()*sx, face.y()*sy, face.width()*sx, face.height()*sy);
+
+                    if (m_displayMode == 1) {
+                        painter.drawImage(QRect(0,0,display.width(),display.height()),
+                                          m_faceTracker->probabilityImage(),
+                                          QRect(0,0,deinterlaced.width(),deinterlaced.height()));
+                    }
+
                     painter.setPen( QColor(0,255,0,150) );
                     painter.drawRect( displayFace );
                     ui->confidence->setValue( m_faceTracker->trackConfidence() );

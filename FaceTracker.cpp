@@ -202,6 +202,8 @@ bool FaceTracker::track(const QImage &frame)
     cv::calcBackProject( &cvFrame, 1, g_channels, m_trackHistogram, prob, g_ranges);
     cv::bitwise_and(prob,mask,prob);
 
+    m_probabilityImage = QtCv::CvMat2QImage(prob);
+
     // track colors
     cv::RotatedRect rotRect =
             cv::CamShift(prob, m_trackWindow,
@@ -221,4 +223,9 @@ QRect FaceTracker::trackWindow() const
 double FaceTracker::trackConfidence() const
 {
     return m_trackConfidence;
+}
+
+QImage FaceTracker::probabilityImage()
+{
+    return m_probabilityImage;
 }

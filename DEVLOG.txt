@@ -271,6 +271,7 @@ better tracking...
   [x] use that to trigger re-targeting
   [x] save/load smin/vmin/vmax
   [x] make the retrack threshold configurable / saveable
+  [x] display probability image
   [ ] voice (target acquired, target lost, etc)
 
 * * *

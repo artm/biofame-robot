@@ -2,8 +2,7 @@
 #define FACETRACKER_H
 
 #include <QObject>
-
-class Trackable;
+#include <QImage>
 
 class FaceTracker : public QObject {
     Q_OBJECT
@@ -18,6 +17,8 @@ public:
     bool track(const QImage &frame);
     QRect trackWindow() const;
     double trackConfidence() const;
+
+    QImage probabilityImage();
 
 public slots:
     /* verilook specific */
@@ -54,6 +55,8 @@ private:
     cv::MatND m_trackHistogram;
     double m_trackConfidence;
     double m_retrackThreshold;
+
+    QImage m_probabilityImage;
 };
 
 
