@@ -69,4 +69,18 @@ QRect CvRect2QRect(const cv::Rect& rect)
     return QRect(rect.x,rect.y,rect.width,rect.height);
 }
 
+QRectF cutOut(const QRectF& orig, float mx, float my)
+{
+    mx *= orig.width();
+    my *= orig.height();
+    return QRectF( orig.x()+mx, orig.y()+my, orig.width()-mx*2, orig.height()-my*2 );
+}
+
+QRect cutOut(const QRect& orig, float mx, float my)
+{
+    mx *= orig.width();
+    my *= orig.height();
+    return QRect( orig.x()+mx, orig.y()+my, orig.width()-mx*2, orig.height()-my*2 );
+}
+
 } // namespace QtCv

@@ -13,6 +13,9 @@ namespace QtCv
     cv::Rect QRect2CvRect(const QRect& rect);
 
     QRect CvRect2QRect(const cv::Rect& rect);
+
+    QRect cutOut(const QRect& orig, float mx, float my);
+    QRectF cutOut(const QRectF& orig, float mx, float my);
 };
 
 #endif // QTOPENCVHELPERS_H

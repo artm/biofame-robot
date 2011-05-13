@@ -17,10 +17,11 @@ const char * s_defaultServer = "/local";
 const char * s_licenseList = "SingleComputerLicense:VLExtractor";
 
 // histogram settings: only hue
-const int g_channels[] = { 0 }; // hue, saturation
-const int g_histSize[] = { 10 };
+const int g_channels[] = { 0, 1 }; // hue
+const int g_histSize[] = { 25, 25 };
 const float g_hranges[] = { 0, 180 };
-const float * g_ranges[] = { g_hranges };
+const float g_sranges[] = { 0, 255 };
+const float * g_ranges[] = { g_hranges, g_sranges };
 const int g_chCount = sizeof(g_channels) / sizeof(int);
 
 FaceTracker::FaceTracker(QObject * parent)
@@ -169,7 +170,11 @@ void FaceTracker::setQualityThreshold(int value)
 
 void FaceTracker::startTracking(const QImage &frame, const QRect &face)
 {
-    cv::Mat sub = QtCv::QImage2CvMat(frame, face);
+    // take only the middle part of the face
+    int mx = face.width() / 4, my = face.height() / 4;
+    QRect skinPatch( face.x()+mx, face.y()+my, face.width()-mx*2, face.height()-my*2 );
+
+    cv::Mat sub = QtCv::QImage2CvMat(frame, skinPatch);
     // convert sub-area to HSV
     cv::cvtColor(sub, sub, CV_RGB2HSV);
     // find the HSV histogram
@@ -201,6 +206,10 @@ bool FaceTracker::track(const QImage &frame)
     // mask out things that are too grey
     cv::calcBackProject( &cvFrame, 1, g_channels, m_trackHistogram, prob, g_ranges);
     cv::bitwise_and(prob,mask,prob);
+
+    cv::Mat kernel = (cv::Mat_<unsigned char>(3,3) << 0, 255, 0, 255, 255, 255, 0, 255, 0);
+    cv::morphologyEx( prob, prob, cv::MORPH_OPEN, kernel, cv::Point(-1,-1), 5);
+    cv::morphologyEx( prob, prob, cv::MORPH_CLOSE, kernel, cv::Point(-1,-1), 5);
 
     m_probabilityImage = QtCv::CvMat2QImage(prob);
 

@@ -69,6 +69,8 @@ public slots:
 protected:
     virtual bool eventFilter(QObject *, QEvent *);
 
+    void notifyOfFace(const QRect& face, const QImage& where);
+
     Ui::RoboShell *ui;
     int m_boardId;
     QTimer m_pollTimer, m_videoTimer;

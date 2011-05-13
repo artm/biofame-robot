@@ -4,6 +4,7 @@
 #include "Motor.h"
 #include "FaceTracker.h"
 #include "SoundSystem.h"
+#include "QtOpenCVHelpers.h"
 
 #include <videoInput.h>
 
@@ -422,18 +423,7 @@ void RoboShell::videoTask()
                 m_faceTracker->findFaces(gray, faces);
                 QPointF vector;
                 if (faces.size()>0) {
-                    double distCorr = (double)faces[0].width() / gray.width();
-                    distCorr =
-                            ui->sizeCorrA->value() * distCorr * distCorr
-                            + ui->sizeCorrB->value() * distCorr;
-
-                    vector = faces[0].center();
-                    vector.setX( 2.0 * (vector.x() / gray.width() - 0.5) );
-                    vector.setY( 2.0 * (vector.y() / gray.height() - 0.5) );
-
-                    vector *= distCorr;
-
-                    emit faceDetected(vector);
+                    notifyOfFace(faces[0],gray);
 
                     QPainter painter(&display);
 
@@ -457,7 +447,8 @@ void RoboShell::videoTask()
                 if (!m_faceTracker->track(deinterlaced)) {
                     m_trackingState = FACE_DETECTION;
                 } else {
-                    QRect face = m_faceTracker->trackWindow();
+                    QRect face = QtCv::cutOut( m_faceTracker->trackWindow(), 0.2, 0.3 );
+                    notifyOfFace(face,deinterlaced);
                     QPainter painter(&display);
                     double sx = (double) display.width() / deinterlaced.width();
                     double sy = (double) display.height() / deinterlaced.height();
@@ -580,4 +571,21 @@ void RoboShell::updateTimeStamp()
 {
     QTime now = QTime::currentTime();
     ui->timestamp->setText( now.toString("HH:mm:ss.zzz") );
+}
+
+void RoboShell::notifyOfFace(const QRect &face, const QImage& where)
+{
+    double distCorr = (double)face.width() / where.width();
+    distCorr =
+            ui->sizeCorrA->value() * distCorr * distCorr
+            + ui->sizeCorrB->value() * distCorr;
+
+    QPointF vector = face.center();
+    vector.setX( 2.0 * (vector.x() / where.width() - 0.5) );
+    vector.setY( 2.0 * (vector.y() / where.height() - 0.5) );
+
+    vector *= distCorr;
+
+    emit faceDetected(vector);
+
 }
