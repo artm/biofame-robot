@@ -131,6 +131,8 @@ RoboShell::RoboShell(QWidget *parent)
 
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
+    connect(this, SIGNAL(faceDetected(QPointF)), m_sound, SLOT(click()));
+
     buildStateMachine();
 
     // the last thing to do: open the board and be ready
