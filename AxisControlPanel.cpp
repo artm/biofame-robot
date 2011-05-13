@@ -289,7 +289,7 @@ void AxisControlPanel::track(double force)
     Motor::Direction desiredDirection = (desiredSpeed < 0) ? Motor::Ccw : Motor::Cw;
     desiredSpeed = abs(desiredSpeed);
 
-    if (desiredSpeed < 5) {
+    if (desiredSpeed < ui->initSpeed->value()) {
         // ensure we stop
         if ((m_motor->motionState() == Motor::MotionCont)
                 || (m_motor->motionState() == Motor::MotionPtp))
