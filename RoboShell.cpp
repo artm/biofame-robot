@@ -91,7 +91,6 @@ RoboShell::RoboShell(QWidget *parent)
         connect(ui->qualityThresh, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setQualityThreshold(int)));
 
     }
-    connect(ui->resetTracker, SIGNAL(clicked()), SLOT(resetTracker()));
     connect(ui->smin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setSMin(int)));
     connect(ui->vmin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMin(int)));
     connect(ui->vmax, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMax(int)));
@@ -433,12 +432,14 @@ void RoboShell::videoTask()
                     painter.setPen( QColor(0,255,0,150) );
                     painter.drawRect( displayFace );
 
-                    // convert faces[0] to deinteslaced coordinates
-                    sx = (double) deinterlaced.width() / gray.width();
-                    sy = (double) deinterlaced.height() / gray.height();
-                    QRect face(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
-                    m_faceTracker->startTracking(deinterlaced, face);
-                    m_trackingState = TRACKING;
+                    if (ui->camShift->isChecked()) {
+                        // convert faces[0] to deinterlaced coordinates
+                        sx = (double) deinterlaced.width() / gray.width();
+                        sy = (double) deinterlaced.height() / gray.height();
+                        QRect face(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
+                        m_faceTracker->startTracking(deinterlaced, face);
+                        m_trackingState = TRACKING;
+                    }
                 }
 
                 break;
@@ -527,6 +528,7 @@ void RoboShell::loadSettings()
     ui->confThresh->setValue( s.value("confThresh", 52.0).toDouble() );
     ui->qualityThresh->setValue( s.value("qualityThresh", 128).toInt() );
 
+    ui->camShift->setChecked( s.value("camShift", false).toBool() );
     ui->smin->setValue( s.value("smin", 30).toInt() );
     ui->vmin->setValue( s.value("vmin", 10).toInt() );
     ui->vmax->setValue( s.value("vmax", 255).toInt() );
@@ -559,6 +561,8 @@ void RoboShell::saveSettings()
     s.setValue("maxIOD", ui->maxIOD->value());
     s.setValue("confThresh", ui->confThresh->value());
     s.setValue("qualityThresh", ui->qualityThresh->value());
+
+    s.setValue("camShift", ui->camShift->isChecked());
     s.setValue("smin", ui->smin->value());
     s.setValue("vmin", ui->vmin->value());
     s.setValue("vmax", ui->vmax->value());

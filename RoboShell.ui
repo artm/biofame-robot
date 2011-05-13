@@ -728,12 +728,15 @@
         </widget>
        </item>
        <item row="10" column="0">
-        <widget class="QPushButton" name="resetTracker">
+        <widget class="QPushButton" name="camShift">
          <property name="toolTip">
           <string>press to reset</string>
          </property>
          <property name="text">
-          <string>CamShift</string>
+          <string>Track color</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

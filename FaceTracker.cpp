@@ -208,8 +208,8 @@ bool FaceTracker::track(const QImage &frame)
     cv::bitwise_and(prob,mask,prob);
 
     cv::Mat kernel = (cv::Mat_<unsigned char>(3,3) << 0, 255, 0, 255, 255, 255, 0, 255, 0);
-    cv::morphologyEx( prob, prob, cv::MORPH_OPEN, kernel, cv::Point(-1,-1), 5);
-    cv::morphologyEx( prob, prob, cv::MORPH_CLOSE, kernel, cv::Point(-1,-1), 5);
+    cv::morphologyEx( prob, prob, cv::MORPH_OPEN, kernel, cv::Point(-1,-1), 2);
+    //cv::morphologyEx( prob, prob, cv::MORPH_CLOSE, kernel, cv::Point(-1,-1), 2);
 
     m_probabilityImage = QtCv::CvMat2QImage(prob);
 
