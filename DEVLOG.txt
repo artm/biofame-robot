@@ -255,7 +255,7 @@ better tracking...
     [x] detect faces
     [x] convert results to QRect list
 
-[ ] CAMSHIFT tracker
+[x] CAMSHIFT tracker
     - based on: http://www.cognotics.com/opencv/servo_2007_series/part_3/index.html
     [x] state machine:
         (a) searching for faces
@@ -272,8 +272,19 @@ better tracking...
   [x] save/load smin/vmin/vmax
   [x] make the retrack threshold configurable / saveable
   [x] display probability image
-  [ ] voice (target acquired, target lost, etc)
 
 * * *
 
+more complex state machine:
+
+
+Instead of relying on signal slot connections should send appropriate values to slots depending on the robot state.
+Individual axes could be state machines or not, but the idea is that there is an "advance" method (like "poll()" is now) which does state specifc things.
+
+[ ] Force saturation
+[ ] Stop criterium (high level state?)
+[ ] GOTCHA state continues for N sec
+[ ] Sounds at started tracking / lost track
+[ ] vertical axis logic
+[ ] speed = F(face_size) for all axes
 
