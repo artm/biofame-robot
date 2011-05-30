@@ -288,3 +288,12 @@ Individual axes could be state machines or not, but the idea is that there is an
 [ ] vertical axis logic
 [ ] speed = F(face_size) for all axes
 
+State dependent execution:
+
+if (m_machine.configuration().contains( m_states["name"] ) {
+// do something state dependent
+}
+
+how can we do that from within an axis?
+remember interesting states inside the axis object...
+

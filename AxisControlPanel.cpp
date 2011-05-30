@@ -25,9 +25,12 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     , m_circleLength(0)
     , m_circleOffset(0)
     , m_circleReset(false)
-    , m_cachedInputs(0)
+    , m_previousInputs(0)
     , m_trackingForce(0.0)
     , m_tracking(false)
+    , m_machine(0)
+    , m_calibCircleOffsetState(0)
+    , m_calibCircleLengthState(0)
 {
     ui->setupUi(this);
 
@@ -70,6 +73,7 @@ AxisControlPanel::AxisControlPanel(QWidget *parent)
     connect(ui->accelerationRate, SIGNAL(editingFinished()), SLOT(enableSetAxisPara()));
 
     connect(this, SIGNAL(driveFinished()), SLOT(reTrack()));
+    connect(this, SIGNAL(inputChanged(int,int)), SLOT(handleInputChanged(int,int)));
 
     setDesireControlsVisible(false);
 }
@@ -193,45 +197,76 @@ void AxisControlPanel::poll()
     quint8 di = m_motor->inputs();
     for(int i=0; i<8; ++i) {
         quint8 bit = di & (1<<i);
-        quint8 old = m_cachedInputs & (1<<i);
-        if (bit == old)
-            continue;
-        m_inputs->button(i)->setChecked( bit );
-
-        if (i==6) { // circle reference trigger
-            if (old) {
-                if (m_circleReset && m_motor->lastSetDirection() == Motor::Cw)
-                    m_motor->setReg(Lcnt, 0);
-                emit in6_fall();
-            } else {
-                if (m_circleReset && m_motor->lastSetDirection() == Motor::Ccw)
-                    m_motor->setReg(Lcnt, m_circleLength);
-                emit in6_raise();
-            }
+        quint8 old = m_previousInputs & (1<<i);
+        if (bit != old) {
+            m_inputs->button(i)->setChecked( bit != 0 );
+            emit inputChanged(i, bit ? 1 : 0);
         }
     }
-    m_cachedInputs = di;
+    m_previousInputs = di;
 
     reTrack();
 }
 
+void AxisControlPanel::handleInputChanged(int input, int newValue)
+{
+    switch(input) {
+    case 6:
+    {
+        qDebug() << QString("%1: input %2 changed to %3").arg(title()).arg(input).arg(newValue);
+
+        // special actions in calibration states - before resetting the circle
+        // only handle fall (i.e. newValue == 0)
+        if (m_machine && m_calibCircleOffsetState && m_calibCircleLengthState && newValue == 0) {
+            QSet<QAbstractState *> fullState = m_machine->configuration();
+            if (fullState.contains(m_calibCircleOffsetState)) {
+                m_circleOffset = m_motor->getReg(Lcnt);
+                qDebug() << QString("%1 calibration, 0-offset: %2").arg(title()).arg(m_circleOffset);
+            } else if (fullState.contains(m_calibCircleLengthState)) {
+                m_circleLength = m_motor->getReg(Lcnt);
+                qDebug() << QString("%1 calibration, circle length: %2").arg(title()).arg(m_circleLength);
+            }
+        }
+
+        // normal circle treatment
+        if (m_circleReset) {
+            if (!newValue && m_motor->lastSetDirection() == Motor::Cw) {
+                // fall
+                qDebug() << title() << "in6 fall @ cw motion with circle reset on => lcnt=0";
+                m_motor->setReg(Lcnt, 0);
+                emit circleResetHappened();
+            } else if (newValue && m_circleLength && m_motor->lastSetDirection() == Motor::Ccw) {
+                // raise
+                qDebug() << title() << "in6 raise @ ccw motion with circle reset on => lcnt=" <<
+                            m_circleLength;
+                m_motor->setReg(Lcnt, m_circleLength);
+                emit circleResetHappened();
+            }
+        }
+
+        break;
+    }
+    }
+}
+
 void AxisControlPanel::setupCircleCalibState(QState * calib)
 {
-    QState  * s1 = new QState(calib),
-            * s2 = new QState(calib);
-    QFinalState
-            * s3 = new QFinalState(calib);
+    m_calibCircleOffsetState = new QState(calib);
+    m_calibCircleLengthState = new QState(calib);
+    QFinalState * finishCalib = new QFinalState(calib);
 
-    calib->setInitialState( s1 );
+    m_calibCircleOffsetState->addTransition(this, SIGNAL(circleResetHappened()), m_calibCircleLengthState);
+    m_calibCircleLengthState->addTransition(this, SIGNAL(circleResetHappened()), finishCalib);
 
-    s1->addTransition(this, SIGNAL(in6_fall()), s2);
-    s2->addTransition(this, SIGNAL(in6_fall()), s3);
+    calib->setInitialState( m_calibCircleOffsetState );
 
-    connect(s1,SIGNAL(entered()), SLOT(goCw()));
-    connect(s2,SIGNAL(entered()), SLOT(posToCircleOffset()));
-    connect(s3,SIGNAL(entered()), SLOT(posToCircleLength()));
+    connect(calib,SIGNAL(entered()), SLOT(resetPosition()));
+    connect(calib,SIGNAL(entered()), SLOT(goCw()));
 
-    calib->assignProperty(this, "circleReset", false);
+    connect(calib,SIGNAL(finished()), SLOT(stop()));
+
+    // if this was requested we're a circle
+    setCircleReset(true);
 }
 
 void AxisControlPanel::setupSeekState(QState * seek)
@@ -244,10 +279,12 @@ void AxisControlPanel::setupInitCircleState(QState * init)
 {
     QState * s1 = new QState(init);
     QFinalState * s2 = new QFinalState(init);
-     init->setInitialState(s1);
-    s1->addTransition(this,SIGNAL(in6_fall()), s2);
+    init->setInitialState(s1);
+    s1->addTransition(this,SIGNAL(circleResetHappened()), s2);
     connect(s1, SIGNAL(entered()), SLOT(goCw()));
     connect(s2, SIGNAL(entered()), SLOT(stop()));
+
+    // if this was requested we're a circle
     setCircleReset(true);
 }
 
@@ -255,21 +292,8 @@ void AxisControlPanel::setupInitCircleState(QState * init)
 void AxisControlPanel::resetPosition()
 {
     if (!m_motor) return;
+    qDebug() << QString("%1: reset counter").arg(title());
     m_motor->setReg(Lcnt, 0);
-}
-
-void AxisControlPanel::posToCircleOffset()
-{
-    if (!m_motor) return;
-    m_circleOffset = - m_motor->getReg(Lcnt);
-    resetPosition();
-}
-
-void AxisControlPanel::posToCircleLength()
-{
-    if (!m_motor) return;
-    m_circleLength = m_motor->getReg(Lcnt);
-    resetPosition();
 }
 
 void AxisControlPanel::track(double force)
@@ -389,4 +413,20 @@ void AxisControlPanel::setDesireControlsVisible(bool on)
     ui->desire->setVisible(on);
     ui->desireLabel->setVisible(on);
 }
+
+void AxisControlPanel::gotoAngle(double newAngle)
+{
+    Q_ASSERT(m_motor);
+    Q_ASSERT(m_circleReset);
+    Q_ASSERT(m_circleLength);
+
+    double arcLen = shortestArcAngle(newAngle - estimatedAngle());
+    int dx = arcLen * m_circleLength / 360.0;
+
+    qDebug() << QString("%1.gotoAngle(%2) => from %3 need to go %4 (dx=%5)")
+                .arg(title()).arg(newAngle).arg(estimatedAngle()).arg(arcLen).arg(dx);
+
+    m_motor->rmove(dx);
+}
+
 

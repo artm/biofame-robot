@@ -39,12 +39,15 @@ public:
     void buildStateMachine();
     static RoboShell * instance() { return s_shell; }
 
+    void addNamedState(const QString& tag, QAbstractState* state);
+
 signals:
     void boardOpened();
     void boardClosing();
     void boardClosed();
 
     void faceDetected(QPointF force);
+    void gotcha();
 
 public slots:
     void closeMotors();
@@ -70,12 +73,18 @@ protected:
     virtual bool eventFilter(QObject *, QEvent *);
 
     void notifyOfFace(const QRect& face, const QImage& where);
+    void machineTick();
+    void searchTick();
+    void trackTick();
+    void refindTick();
 
     Ui::RoboShell *ui;
     int m_boardId;
     QTimer m_pollTimer, m_videoTimer;
 
-    QStateMachine * m_automaton;
+    QStateMachine * m_machine;
+    QMap<QString, QAbstractState*> m_states;
+    QTimer m_faceLostTimer, m_refindTimer, m_stareTimer, m_roamTimer;
 
     videoInput * m_cams;
     int m_openCam;

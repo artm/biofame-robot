@@ -31,15 +31,21 @@ public:
     void setupInitCircleState(QState * parent);
 
     bool circleReset() const { return m_circleReset; }
-    void setCircleReset(bool reset) { m_circleReset = reset; }
+    void setCircleReset(bool reset) {
+        qDebug() << title() << ".setCircleReset(" << reset << ")";
+        m_circleReset = reset;
+    }
     bool isTracking() const { return m_tracking; }
 
     // return estimated angle (-180,180) or 360 for wheels
     double estimatedAngle() const;
+    void gotoAngle(double newAngle);
+
+    void setMachine(QStateMachine * machine) { m_machine = machine; }
 
 signals:
-    void in6_fall(); // input 6 transition from 1 to 0
-    void in6_raise(); // input 6 transition from 0 to 1
+    void inputChanged(int input, int newValue);
+    void circleResetHappened();
     void driveFinished();
     void positionChanged(int pos);
     void forceFeedback(double force);
@@ -66,8 +72,6 @@ public slots:
     void displaySpeed(int speed);
 
     void resetPosition();
-    void posToCircleOffset();
-    void posToCircleLength();
 
     void track(double force);
     void reTrack() { track(m_trackingForce); }
@@ -86,16 +90,23 @@ public slots:
     void setDesireControlsVisible(bool on);
     void setTracking(bool on) { m_tracking = on; }
 
+    void handleInputChanged(int input, int newValue);
+
 private:
     Ui::AxisControlPanel *ui;
     QButtonGroup * m_inputs, * m_outputs;
     Motor * m_motor;
     int m_circleLength, m_circleOffset; // in pulses
     bool m_circleReset;
-    quint8 m_cachedInputs;
+    quint8 m_previousInputs;
     double m_trackingForce;
 
     bool m_tracking;
+
+    QStateMachine * m_machine;
+    QState
+    * m_calibCircleOffsetState,
+    * m_calibCircleLengthState;
 };
 
 #endif // AXISCONTROLPANEL_H

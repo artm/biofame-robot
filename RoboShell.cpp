@@ -121,12 +121,6 @@ RoboShell::RoboShell(QWidget *parent)
     connect(this,SIGNAL(boardClosing()), ui->wheelsPanel, SLOT(onBoardClosing()));
     connect(this,SIGNAL(boardClosed()), ui->wheelsPanel, SLOT(onBoardClosed()));
 
-    connect(this, SIGNAL(faceDetected(QPointF)), ui->cameraPanel, SLOT(trackX(QPointF)));
-    connect(ui->cameraPanel, SIGNAL(angleChanged(double)),
-            ui->bodyPanel, SLOT(trackAxis(double)));
-    connect(ui->bodyPanel, SIGNAL(angleChanged(double)),
-            ui->wheelsPanel, SLOT(trackAxisDirection(double)));
-
     connect(ui->layerSelector, SIGNAL(activated(int)), SLOT(setDisplayMode(int)));
 
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
@@ -192,23 +186,26 @@ RoboShell::~RoboShell()
 
 void RoboShell::buildStateMachine()
 {
-    m_automaton = new QStateMachine(this);
-    m_automaton->setGlobalRestorePolicy(QStateMachine::RestoreProperties);
+    m_machine = new QStateMachine(this);
+    m_machine->setGlobalRestorePolicy(QStateMachine::RestoreProperties);
 
-    QState * idle = new QState(m_automaton);
-    m_automaton->setInitialState(idle);
+    QState * idle = new QState(m_machine);
+    m_machine->setInitialState(idle);
     connect(idle, SIGNAL(entered()), SLOT(stopAllAxes()));
 
-    QState * busy = new QState(m_automaton);
+    QState * busy = new QState(m_machine);
     busy->addTransition(ui->panic, SIGNAL(clicked()), idle);
 
-    QState * calib = new QState(busy);
+    QState * calib = new QState(QState::ParallelStates, busy);
     idle->addTransition(ui->calibrate, SIGNAL(clicked()), calib);
-    calib->setChildMode(QState::ParallelStates);
     ui->cameraPanel->setupCircleCalibState(new QState(calib));
     ui->bodyPanel->setupCircleCalibState(new QState(calib));
     calib->addTransition(calib, SIGNAL(finished()), idle);
     connect(calib, SIGNAL(finished()), SLOT(saveSettings()));
+    ui->cameraPanel->setMachine(m_machine);
+    ui->cameraPanel->setCircleReset(true);
+    ui->bodyPanel->setMachine(m_machine);
+    ui->bodyPanel->setCircleReset(true);
 
     QState * seek = new QState(QState::ParallelStates, busy);
     idle->addTransition(ui->seek, SIGNAL(clicked()), seek);
@@ -217,13 +214,44 @@ void RoboShell::buildStateMachine()
     ui->wheelsPanel->setupSeekState(new QState(seek));
     seek->addTransition(seek, SIGNAL(finished()), idle);
 
+    // -----------------------------------------------------------
+    // NEW SEEK BEHAVIOR
+    QState * newSeek, * search, * track, * refind, * gotcha, * roam;
+    addNamedState("seek", newSeek = new QState(busy));
+    idle->addTransition(ui->newSeek, SIGNAL(clicked()), newSeek);
+    newSeek->addTransition(newSeek, SIGNAL(finished()), idle);
+
+    addNamedState("search", search = new QState(newSeek));
+    addNamedState("track", track = new QState(newSeek));
+    addNamedState("refind", refind = new QState(newSeek));
+    addNamedState("gotcha", gotcha = new QState(newSeek));
+    addNamedState("roam", roam = new QState(newSeek));
+    newSeek->setInitialState(search);
+
+    // create / configure timers
+    m_faceLostTimer.setInterval(1000);
+    m_refindTimer.setInterval(2500);
+    m_stareTimer.setInterval(5000);
+    m_roamTimer.setInterval(5000);
+
+    // connect timeouts to transitions
+    track->addTransition(&m_faceLostTimer, SIGNAL(timeout()), refind);
+    refind->addTransition(&m_refindTimer, SIGNAL(timeout()), search);
+    gotcha->addTransition(&m_stareTimer, SIGNAL(timeout()), roam);
+    roam->addTransition(&m_roamTimer, SIGNAL(timeout()), search);
+    // non-timeout transitions
+    //search->addTransition(this, SIGNAL(faceDetected(QPointF)), track);
+    refind->addTransition(this, SIGNAL(faceDetected(QPointF)), track);
+    track->addTransition(this, SIGNAL(gotcha()), gotcha);
+    // -----------------------------------------------------------
+
     QState * init = new QState(QState::ParallelStates, busy);
     idle->addTransition(ui->initialize, SIGNAL(clicked()), init);
     ui->cameraPanel->setupInitCircleState( new QState(init) );
     ui->bodyPanel->setupInitCircleState( new QState(init) );
     init->addTransition(init, SIGNAL(finished()), idle);
 
-    m_automaton->start();
+    m_machine->start();
 }
 
 void RoboShell::closeMotors()
@@ -312,6 +340,7 @@ void RoboShell::motorsTask()
     ui->bodyPanel->poll();
     ui->wheelsPanel->poll();
 
+    machineTick();
 }
 
 void RoboShell::stopAllAxes()
@@ -595,3 +624,50 @@ void RoboShell::notifyOfFace(const QRect &face, const QImage& where)
     emit faceDetected(vector);
 
 }
+
+void RoboShell::addNamedState(const QString &tag, QAbstractState *state)
+{
+    m_states[tag] = state;
+    state->setObjectName(tag);
+}
+
+void RoboShell::machineTick()
+{
+    QSet<QAbstractState*> state = m_machine->configuration();
+
+    if (state.contains(m_states["search"])) {
+        searchTick();
+    } else if (state.contains(m_states["track"])) {
+        trackTick();
+    } else if (state.contains(m_states["refind"])) {
+        refindTick();
+    } else if (state.contains(m_states["gotcha"])) {
+    } else if (state.contains(m_states["roam"])) {
+    }
+}
+
+void RoboShell::searchTick()
+{
+    Motor * cam = ui->cameraPanel->motor();
+
+    switch (cam->motionState()) {
+    case Motor::MotionCont:
+        cam->stop();
+        break;
+    case Motor::MotionStopped:
+        ui->cameraPanel->gotoAngle( ui->cameraPanel->estimatedAngle() < 0 ? 45 : -45 );
+        break;
+    default:
+        // nothing to do (cont motion or breaking)
+        break;
+    }
+}
+
+void RoboShell::trackTick()
+{
+}
+
+void RoboShell::refindTick()
+{
+}
+
