@@ -126,10 +126,9 @@ void Motor::stop()
         return;
 
     // second axis bit means "slow down stop this axis"
-    qDebug() << "requesting to stop";
+    qDebug() << "Requesting to stop";
     CHECK_RESULT( P1240MotStop( m_boardId, m_axisBit, m_axisBit) );
     m_motionState = MotionBreaking;
-    qDebug() << "Entered breaking motion state" << m_motionState;
 }
 
 int Motor::getReg(int reg)

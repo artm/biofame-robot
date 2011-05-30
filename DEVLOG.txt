@@ -308,3 +308,8 @@ setup (init, on SIGNAL(enter()):
 
 * * *
 
+random walk: two states - decision and walk.
+decision sets up the motor and schedules stop.
+walk does nothing and returns to decision upon SIGNAL(driveFinished())
+
+

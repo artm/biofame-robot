@@ -81,13 +81,6 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
-           <widget class="QPushButton" name="panic">
-            <property name="text">
-             <string>Panic ! ! !</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <widget class="QPushButton" name="seek">
             <property name="text">
@@ -106,6 +99,20 @@
            <widget class="QPushButton" name="newSeek">
             <property name="text">
              <string>New Seek</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="rndWalk">
+            <property name="text">
+             <string>RandomWalk</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QPushButton" name="panic">
+            <property name="text">
+             <string>Panic ! ! !</string>
             </property>
            </widget>
           </item>

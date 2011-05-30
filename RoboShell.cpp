@@ -244,6 +244,15 @@ void RoboShell::buildStateMachine()
     refind->addTransition(this, SIGNAL(faceDetected(QPointF)), track);
     track->addTransition(this, SIGNAL(gotcha()), gotcha);
     // -----------------------------------------------------------
+    // RANDOM WALK BEHAVIOR
+    QState * rndWalk = new QState(QState::ParallelStates, busy);
+    ui->cameraPanel->setupRandomWalk(new QState(rndWalk));
+    ui->bodyPanel->setupRandomWalk(new QState(rndWalk));
+    ui->wheelsPanel->setupRandomWalk(new QState(rndWalk));
+
+    idle->addTransition(ui->rndWalk, SIGNAL(clicked()), rndWalk);
+    //rndWalk->addTransition(rndWalk, SIGNAL(finished()), idle);
+    // -----------------------------------------------------------
 
     QState * init = new QState(QState::ParallelStates, busy);
     idle->addTransition(ui->initialize, SIGNAL(clicked()), init);

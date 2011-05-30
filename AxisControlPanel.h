@@ -29,6 +29,7 @@ public:
     void setupCircleCalibState(QState * parent);
     void setupSeekState(QState * parent);
     void setupInitCircleState(QState * parent);
+    void setupRandomWalk(QState * parent);
 
     bool circleReset() const { return m_circleReset; }
     void setCircleReset(bool reset) {
@@ -50,6 +51,7 @@ signals:
     void positionChanged(int pos);
     void forceFeedback(double force);
     void angleChanged(double newAngle); // degrees
+    void startWalking();
 
 public slots:
     void onBoardOpened();
@@ -91,6 +93,9 @@ public slots:
     void setTracking(bool on) { m_tracking = on; }
 
     void handleInputChanged(int input, int newValue);
+
+    void onRndDecisionEnter();
+    void onRndWalkEnter();
 
 private:
     Ui::AxisControlPanel *ui;

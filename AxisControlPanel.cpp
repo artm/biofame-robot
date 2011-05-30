@@ -6,6 +6,7 @@
 
 #include <QFinalState>
 #include <QSettings>
+#include <QTimer>
 
 #include <math.h>
 
@@ -16,6 +17,12 @@ double shortestArcAngle(double angle) {
     else if (angle < -180.0)
         angle += 360;
     return angle;
+}
+
+int random(int min, int max)
+{
+    return min + (float)(max-min) * rand() / RAND_MAX;
+
 }
 
 AxisControlPanel::AxisControlPanel(QWidget *parent)
@@ -288,6 +295,44 @@ void AxisControlPanel::setupInitCircleState(QState * init)
     setCircleReset(true);
 }
 
+void AxisControlPanel::setupRandomWalk(QState *parent)
+{
+    QState * rndDecision, * rndWalk;
+
+    rndDecision = new QState(parent);
+    rndWalk = new QState(parent);
+
+    rndDecision->addTransition( this, SIGNAL(startWalking()), rndWalk );
+    rndWalk->addTransition( this, SIGNAL(driveFinished()), rndDecision );
+    parent->setInitialState(rndDecision);
+
+    /* I have to use queued connection here because onRndDecisionEnter() emits the signal
+      startWalking() which triggers the transition to 'rndWalk' while state machine is still
+      entering 'rndDecision' state, which confuses the machine and the whole signal-slot
+      system breaks. I haven't fully understand this yet, but this is some sort of reentrancy
+      problem */
+    connect(rndDecision, SIGNAL(entered()), SLOT(onRndDecisionEnter()), Qt::QueuedConnection);
+    connect(rndWalk, SIGNAL(entered()), SLOT(onRndWalkEnter()));
+}
+
+void AxisControlPanel::onRndDecisionEnter()
+{
+    int speed = random(ui->maxDriveSpeed->value()/2, ui->maxDriveSpeed->value());
+    m_motor->setSpeed( speed );
+    if (rand() & 1)
+        goCw();
+    else
+        goCcw();
+    int delay = random(1000, 25000);
+    QTimer::singleShot( delay, this, SLOT(stop()) );
+    qDebug() << title() << ": started random walk with speed" << speed << "for" << delay << "msec";
+    emit startWalking();
+}
+
+void AxisControlPanel::onRndWalkEnter()
+{
+    qDebug() << title() << ": random walking";
+}
 
 void AxisControlPanel::resetPosition()
 {
@@ -428,5 +473,4 @@ void AxisControlPanel::gotoAngle(double newAngle)
 
     m_motor->rmove(dx);
 }
-
 
