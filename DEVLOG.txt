@@ -294,6 +294,17 @@ if (m_machine.configuration().contains( m_states["name"] ) {
 // do something state dependent
 }
 
-how can we do that from within an axis?
-remember interesting states inside the axis object...
+* * *
+
+* compound seek bahavior
+* tracking state
+need a method to setup tracking and another one to dismantle
+setup (init, on SIGNAL(enter()):
+1. stop all axes in ptp motions
+2. connect faceDetected to camera / arm tracking
+3. feed camera angle to body tracker
+4. feed body angle to wheels tracker
+
+
+* * *
 

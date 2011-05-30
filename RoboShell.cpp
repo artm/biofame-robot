@@ -240,7 +240,7 @@ void RoboShell::buildStateMachine()
     gotcha->addTransition(&m_stareTimer, SIGNAL(timeout()), roam);
     roam->addTransition(&m_roamTimer, SIGNAL(timeout()), search);
     // non-timeout transitions
-    //search->addTransition(this, SIGNAL(faceDetected(QPointF)), track);
+    search->addTransition(this, SIGNAL(faceDetected(QPointF)), track);
     refind->addTransition(this, SIGNAL(faceDetected(QPointF)), track);
     track->addTransition(this, SIGNAL(gotcha()), gotcha);
     // -----------------------------------------------------------
@@ -658,16 +658,18 @@ void RoboShell::searchTick()
         ui->cameraPanel->gotoAngle( ui->cameraPanel->estimatedAngle() < 0 ? 45 : -45 );
         break;
     default:
-        // nothing to do (cont motion or breaking)
+        // nothing to do (ptp motion or breaking)
         break;
     }
 }
 
 void RoboShell::trackTick()
 {
+    qDebug() << "TODO: track tick";
 }
 
 void RoboShell::refindTick()
 {
+    qDebug() << "TODO: refind tick";
 }
 
