@@ -474,3 +474,15 @@ void AxisControlPanel::gotoAngle(double newAngle)
     m_motor->rmove(dx);
 }
 
+void AxisControlPanel::setSpeedToMax()
+{
+    m_motor->setSpeed( ui->maxDriveSpeed->value() );
+}
+
+void AxisControlPanel::ensureGoing()
+{
+    if (!m_motor) return;
+    if (m_motor->motionState() == Motor::MotionStopped)
+        m_motor->cmove( m_motor->lastSetDirection() );
+}
+

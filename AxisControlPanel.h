@@ -62,6 +62,7 @@ public slots:
     void goCw();
     void goCcw();
     void stop();
+    void ensureGoing(); // continue going in the last direction
 
     void enableSetAxisPara();
     void disableSetAxisPara();
@@ -96,6 +97,8 @@ public slots:
 
     void onRndDecisionEnter();
     void onRndWalkEnter();
+
+    void setSpeedToMax();
 
 private:
     Ui::AxisControlPanel *ui;
