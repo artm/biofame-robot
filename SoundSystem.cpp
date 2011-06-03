@@ -1,6 +1,10 @@
 #include "SoundSystem.h"
 
 #include <QTimer>
+#include <QMap>
+#include <QString>
+
+#include <QDir>
 
 #include <fmod.h>
 #include <fmod_errors.h>
@@ -8,6 +12,8 @@
 struct SoundSystemPrivate {
     FMOD_SYSTEM * system;
     FMOD_SOUND * click;
+
+    QMap< QString, FMOD_SOUND *> words;
 
     SoundSystemPrivate()
         : system(0)
@@ -52,6 +58,17 @@ SoundSystem::SoundSystem(QObject *parent)
         connect(&m_geiger, SIGNAL(timeout()), SLOT(click()));
         setGeiger(0.0);
     }
+
+    QDir dot;
+    foreach(QString fname, dot.entryList(QStringList() << "*.wav",QDir::Files)) {
+        FMOD_SOUND * w;
+        if (FMOD_CHECK( FMOD_System_CreateSound( m_private->system, fname.toUtf8().constData(),
+                                                FMOD_INIT_NORMAL, 0, &w) )) {
+            m_private->words[ QFileInfo(fname).baseName() ] = w;
+        } else {
+            qWarning() << "coudn't load word" << fname;
+        }
+    }
 }
 
 SoundSystem::~SoundSystem()
@@ -94,4 +111,17 @@ void SoundSystem::setGeiger(int value)
         }
     }
 
+}
+
+void SoundSystem::say(const QString &word)
+{
+    if (!m_private || !m_private->system)
+        exit();
+
+    if (m_private->words.contains(word)) {
+        FMOD_CHANNEL * channel;
+        FMOD_CHECK( FMOD_System_PlaySound(m_private->system, FMOD_CHANNEL_FREE,
+                                          m_private->words[word], false, &channel) );
+        FMOD_System_Update( m_private->system );
+    }
 }

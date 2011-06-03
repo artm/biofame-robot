@@ -283,6 +283,7 @@ void AxisControlPanel::setupInitCircleState(QState * init)
     QFinalState * s2 = new QFinalState(init);
     init->setInitialState(s1);
     s1->addTransition(this,SIGNAL(circleResetHappened()), s2);
+    connect(s1, SIGNAL(entered()), SLOT(setSpeedToMax()));
     connect(s1, SIGNAL(entered()), SLOT(goCw()));
     connect(s2, SIGNAL(entered()), SLOT(stop()));
 

@@ -20,6 +20,7 @@ public slots:
     void setGeigerMaxPeriod(int ms) { m_maxGeigerPeriod = ms; }
     void setGeiger(int value); // 0(silent), 1(max period), ..., 100 (min period)
     void click();
+    void say(const QString& word);
 
 private:
     int m_minGeigerPeriod, m_maxGeigerPeriod;

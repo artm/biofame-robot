@@ -67,7 +67,7 @@ RoboShell::RoboShell(QWidget *parent)
     , m_trackingState(FACE_DETECTION)
     , m_sound(new SoundSystem(this))
     , m_displayMode(0)
-    , m_gotchaSize(0.4)
+    , m_gotchaSize(0.55)
     , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
     m_logFile.open(QFile::WriteOnly);
@@ -127,6 +127,7 @@ RoboShell::RoboShell(QWidget *parent)
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
     connect(this, SIGNAL(faceDetected(QPointF)), m_sound, SLOT(click()));
+    connect(this, SIGNAL(gotcha()), m_sound, SLOT(click()));
 
     buildStateMachine();
 
@@ -234,7 +235,7 @@ void RoboShell::buildStateMachine()
     m_refindTimer.setSingleShot(true);
     m_stareTimer.setInterval(5000);
     m_stareTimer.setSingleShot(true);
-    m_roamTimer.setInterval(5000);
+    m_roamTimer.setInterval(10000);
     m_roamTimer.setSingleShot(true);
 
     // connect timeouts to transitions
@@ -362,6 +363,11 @@ void RoboShell::stopAllAxes()
     ui->armPanel->stop();
     ui->bodyPanel->stop();
     ui->wheelsPanel->stop();
+
+    ui->cameraPanel->setTracking(false);
+    ui->armPanel->setTracking(false);
+    ui->bodyPanel->setTracking(false);
+    ui->wheelsPanel->setTracking(false);
 }
 
 void RoboShell::msgHandler(QtMsgType type, const char *message)
@@ -634,7 +640,7 @@ void RoboShell::notifyOfFace(const QRect &face, const QImage& where)
     vector *= distCorr;
 
     m_faceCenter = vector;
-    m_faceSize = (float)face.width() / where.width();
+    m_faceSize = (float)face.height() / where.height();
     m_faceTimestamp.restart();
 
     if (m_faceSize < m_gotchaSize)
@@ -686,7 +692,7 @@ void RoboShell::machineTick()
         // try to quickly continue turning in the last set direction...
         ui->cameraPanel->ensureGoing();
     } else if (state.contains(m_states["gotcha"])) {
-        // do nothing....
+        ui->cameraPanel->trackX( m_faceCenter );
     } else if (state.contains(m_states["roam"])) {
         // go away without any interest in life, universe or anything
         ui->wheelsPanel->trackAxisDirection( ui->bodyPanel->estimatedAngle() );
@@ -697,6 +703,8 @@ void RoboShell::onStateEnter()
 {
     QString name = printVerbState("Entered");
 
+    m_sound->say(name);
+
     if (name == "search") {
         ui->cameraPanel->setTracking(false);
         ui->bodyPanel->setTracking(false);
@@ -706,10 +714,10 @@ void RoboShell::onStateEnter()
         ui->bodyPanel->setSpeedToMax();
         ui->wheelsPanel->setSpeedToMax();
 
-        ui->bodyPanel->gotoAngle( 90 );
+        ui->bodyPanel->gotoAngle( -90 );
     } else if (name == "track") {
-        ui->cameraPanel->setTracking(true);
-        ui->bodyPanel->setTracking(true);
+        ui->cameraPanel->setTracking(true); // camera tracks face
+        ui->bodyPanel->setTracking(true); // body tracks camera
         ui->wheelsPanel->setTracking(true); // wheels track body
 
     } else if (name == "refind") {
@@ -724,13 +732,16 @@ void RoboShell::onStateEnter()
         ui->cameraPanel->reverse();
         m_refindTimer.start();
     } else if (name == "gotcha") {
-        ui->cameraPanel->setTracking(false);
+        ui->cameraPanel->setTracking(true); // keep tracking the face...
         ui->bodyPanel->setTracking(false);
         ui->wheelsPanel->setTracking(false);
 
         ui->bodyPanel->stop();
         ui->wheelsPanel->stop();
         ui->cameraPanel->stop();
+
+        m_stareTimer.start();
+
         qDebug() << "TODO send image to the other one";
     } else if (name == "roam") {
         ui->cameraPanel->setTracking(false);
@@ -741,8 +752,10 @@ void RoboShell::onStateEnter()
         ui->bodyPanel->setSpeedToMax();
         ui->wheelsPanel->setSpeedToMax();
 
-        ui->bodyPanel->gotoAngle( 90 );
+        ui->bodyPanel->gotoAngle( -90 );
         ui->cameraPanel->gotoAngle( 0 );
+
+        m_roamTimer.start();
     }
 
 }
