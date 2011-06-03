@@ -460,7 +460,6 @@ void RoboShell::videoTask()
 
                 QList<QRect> faces;
                 m_faceTracker->findFaces(gray, faces);
-                QPointF vector;
                 if (faces.size()>0) {
                     notifyOfFace(faces[0],gray);
 
@@ -630,8 +629,11 @@ void RoboShell::notifyOfFace(const QRect &face, const QImage& where)
 
     vector *= distCorr;
 
-    emit faceDetected(vector);
+    m_faceCenter = vector;
+    m_faceSize = (float)face.width() / where.width();
+    m_faceTimestamp.restart();
 
+    emit faceDetected(vector);
 }
 
 void RoboShell::addNamedState(const QString &tag, QAbstractState *state)

@@ -104,6 +104,12 @@ protected:
 
     int m_displayMode;
 
+    // detection/tracking state
+    QPointF m_faceCenter; // relative to frame center
+    float m_faceSize; // relative to frame width
+    QTime m_faceTimestamp; // when last seen
+
+
     // Logger (TODO separate)
     QFile m_logFile;
     QTextStream m_log;
