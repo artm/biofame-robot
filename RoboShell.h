@@ -69,6 +69,13 @@ public slots:
 
     void setDisplayMode(int i) { m_displayMode = i; }
 
+    void onSearchTrackEnter();
+    void onSearchTrackLeave();
+
+    void printVerbState(const QString& verb);
+    void printEnteredState();
+    void printExitedState();
+
 protected:
     virtual bool eventFilter(QObject *, QEvent *);
 

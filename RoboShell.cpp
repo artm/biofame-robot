@@ -638,6 +638,8 @@ void RoboShell::addNamedState(const QString &tag, QAbstractState *state)
 {
     m_states[tag] = state;
     state->setObjectName(tag);
+    connect(state, SIGNAL(entered()), SLOT(printEnteredState()));
+    connect(state, SIGNAL(exited()), SLOT(printExitedState()));
 }
 
 void RoboShell::machineTick()
@@ -680,5 +682,31 @@ void RoboShell::trackTick()
 void RoboShell::refindTick()
 {
     qDebug() << "TODO: refind tick";
+}
+
+void RoboShell::onSearchTrackEnter()
+{
+}
+
+void RoboShell::onSearchTrackLeave()
+{
+}
+
+void RoboShell::printEnteredState()
+{
+    printVerbState("Entered");
+}
+
+void RoboShell::printExitedState()
+{
+    printVerbState("Exited");
+}
+
+void RoboShell::printVerbState(const QString &verb)
+{
+    QAbstractState * state = dynamic_cast<QAbstractState*>(sender());
+    if (state) {
+        qDebug() << verb << "state" << state->objectName();
+    }
 }
 

@@ -288,28 +288,24 @@ Individual axes could be state machines or not, but the idea is that there is an
 [ ] vertical axis logic
 [ ] speed = F(face_size) for all axes
 
-State dependent execution:
-
-if (m_machine.configuration().contains( m_states["name"] ) {
-// do something state dependent
-}
-
 * * *
 
-* compound seek bahavior
+* compound seek behavior
+
 * tracking state
 need a method to setup tracking and another one to dismantle
 setup (init, on SIGNAL(enter()):
-1. stop all axes in ptp motions
-2. connect faceDetected to camera / arm tracking
-3. feed camera angle to body tracker
-4. feed body angle to wheels tracker
+[ ] connect faceDetected to camera / arm tracking. can we have enable disable of connections?
+[ ] feed camera angle to body tracker
+[ ] feed body angle to wheels tracker
 
 
 * * *
 
-random walk: two states - decision and walk.
-decision sets up the motor and schedules stop.
-walk does nothing and returns to decision upon SIGNAL(driveFinished())
+[x] random walk: two states - decision and walk.
+    decision sets up the motor and schedules stop.
+    walk does nothing and returns to decision upon SIGNAL(driveFinished())
 
+* * *
 
+Make states report themselves using slot that prints its sender.
