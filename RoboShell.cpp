@@ -230,8 +230,11 @@ void RoboShell::buildStateMachine()
 
     // create / configure timers
     m_refindTimer.setInterval(2500);
+    m_refindTimer.setSingleShot(true);
     m_stareTimer.setInterval(5000);
+    m_stareTimer.setSingleShot(true);
     m_roamTimer.setInterval(5000);
+    m_roamTimer.setSingleShot(true);
 
     // connect timeouts to transitions
     track->addTransition(this, SIGNAL(faceLost()), refind);
@@ -639,8 +642,8 @@ void RoboShell::addNamedState(const QString &tag, QAbstractState *state)
 {
     m_states[tag] = state;
     state->setObjectName(tag);
-    connect(state, SIGNAL(entered()), SLOT(printEnteredState()));
-    connect(state, SIGNAL(exited()), SLOT(printExitedState()));
+    connect(state, SIGNAL(entered()), SLOT(onStateEnter()));
+    connect(state, SIGNAL(exited()), SLOT(onStateExit()));
 }
 
 void RoboShell::machineTick()
@@ -689,32 +692,34 @@ void RoboShell::trackTick()
 
 void RoboShell::refindTick()
 {
-    qDebug() << "TODO: refind tick";
+    ui->cameraPanel->ensureGoing();
 }
 
-void RoboShell::onSearchTrackEnter()
+void RoboShell::onStateEnter()
 {
+    QString name = printVerbState("Entered");
+
+    if (name == "refind") {
+        ui->bodyPanel->stop();
+        ui->wheelsPanel->stop();
+        ui->cameraPanel->setSpeedToMax();
+        ui->cameraPanel->ensureGoing();
+        m_refindTimer.start();
+    }
+
 }
 
-void RoboShell::onSearchTrackLeave()
-{
-}
-
-void RoboShell::printEnteredState()
-{
-    printVerbState("Entered");
-}
-
-void RoboShell::printExitedState()
+void RoboShell::onStateExit()
 {
     printVerbState("Exited");
 }
 
-void RoboShell::printVerbState(const QString &verb)
+QString RoboShell::printVerbState(const QString &verb)
 {
     QAbstractState * state = dynamic_cast<QAbstractState*>(sender());
-    if (state) {
-        qDebug() << verb << "state" << state->objectName();
-    }
+    Q_ASSERT(state);
+    QString name = state->objectName();
+    qDebug() << verb << "state" << name;
+    return name;
 }
 
