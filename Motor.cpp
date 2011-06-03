@@ -104,7 +104,6 @@ void Motor::cmove(Direction dir)
     CHECK_RESULT( P1240MotCmove( m_boardId, m_axisBit, (dir == Ccw) ? m_axisBit : 0 ) );
     m_lastSetDirection = dir;
     m_motionState = MotionCont;
-    qDebug() << "Entered cont motion state" << m_motionState;
 }
 
 void Motor::rmove(int dx)
@@ -115,7 +114,6 @@ void Motor::rmove(int dx)
     CHECK_RESULT( P1240MotPtp( m_boardId, m_axisBit, 0, dx, dx, dx, dx) );
     m_lastSetDirection = (dx > 0) ? Cw : Ccw;
     m_motionState = MotionPtp;
-    qDebug() << "Entered ptp motion state" << m_motionState;
 }
 
 void Motor::stop()
@@ -126,7 +124,6 @@ void Motor::stop()
         return;
 
     // second axis bit means "slow down stop this axis"
-    qDebug() << "Requesting to stop";
     CHECK_RESULT( P1240MotStop( m_boardId, m_axisBit, m_axisBit) );
     m_motionState = MotionBreaking;
 }
@@ -193,6 +190,10 @@ void Motor::setSpeed(int speed)
 void Motor::notifyStopped()
 {
     m_motionState = MotionStopped;
-    qDebug() << "Motion stopped" << m_motionState;
+}
+
+void Motor::reverseLastDirection()
+{
+    m_lastSetDirection = m_lastSetDirection == Cw ? Ccw : Cw;
 }
 

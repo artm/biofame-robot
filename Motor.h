@@ -67,6 +67,8 @@ public slots:
     void enableEvents(quint8 mask);
     void notifyStopped();
 
+    void reverseLastDirection();
+
 protected:
     int& m_boardId;
     int m_axisBit;

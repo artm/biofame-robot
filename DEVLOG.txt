@@ -275,21 +275,6 @@ better tracking...
 
 * * *
 
-more complex state machine:
-
-
-Instead of relying on signal slot connections should send appropriate values to slots depending on the robot state.
-Individual axes could be state machines or not, but the idea is that there is an "advance" method (like "poll()" is now) which does state specifc things.
-
-[ ] Force saturation
-[ ] Stop criterium (high level state?)
-[ ] GOTCHA state continues for N sec
-[ ] Sounds at started tracking / lost track
-[ ] vertical axis logic
-[ ] speed = F(face_size) for all axes
-
-* * *
-
 * compound seek behavior
 
 * tracking state
@@ -313,5 +298,24 @@ Make states report themselves using slot that prints its sender.
 
 * * *
 
-[ ] gotcha criterion and signal
-[ ] gotcha state enter (no tick - wait for
+more complex state machine:
+
+
+Instead of relying on signal slot connections should send appropriate values to slots depending on the robot state.
+Individual axes could be state machines or not, but the idea is that there is an "advance" method (like "poll()" is now) which does state specifc things.
+
+[ ] Force saturation
+[x] Stop criterium (high level state?)
+[x] GOTCHA state continues for N sec
+    [x] gotcha criterion and signal: the best place is notifyOfFace() helper - it sends either faceDetected or gotcha.
+    [x] gotcha state enter (no tick - wait for timeout)
+    [ ] gotcha size in GUI and config file
+[ ] Sounds at state changes
+[ ] vertical axis logic
+[ ] speed = F(face_size) for all axes
+[ ] separate thread for video processing (so polling the motor is faster)
+[ ] setSpeedToMax() in appropriate places
+    [x] when starting some seek states
+    [ ] upon init
+    [ ] upon calib
+    [ ] on manual control

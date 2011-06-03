@@ -220,8 +220,6 @@ void AxisControlPanel::handleInputChanged(int input, int newValue)
     switch(input) {
     case 6:
     {
-        qDebug() << QString("%1: input %2 changed to %3").arg(title()).arg(input).arg(newValue);
-
         // special actions in calibration states - before resetting the circle
         // only handle fall (i.e. newValue == 0)
         if (m_machine && m_calibCircleOffsetState && m_calibCircleLengthState && newValue == 0) {
@@ -239,13 +237,10 @@ void AxisControlPanel::handleInputChanged(int input, int newValue)
         if (m_circleReset) {
             if (!newValue && m_motor->lastSetDirection() == Motor::Cw) {
                 // fall
-                qDebug() << title() << "in6 fall @ cw motion with circle reset on => lcnt=0";
                 m_motor->setReg(Lcnt, 0);
                 emit circleResetHappened();
             } else if (newValue && m_circleLength && m_motor->lastSetDirection() == Motor::Ccw) {
                 // raise
-                qDebug() << title() << "in6 raise @ ccw motion with circle reset on => lcnt=" <<
-                            m_circleLength;
                 m_motor->setReg(Lcnt, m_circleLength);
                 emit circleResetHappened();
             }
@@ -325,19 +320,16 @@ void AxisControlPanel::onRndDecisionEnter()
         goCcw();
     int delay = random(1000, 25000);
     QTimer::singleShot( delay, this, SLOT(stop()) );
-    qDebug() << title() << ": started random walk with speed" << speed << "for" << delay << "msec";
     emit startWalking();
 }
 
 void AxisControlPanel::onRndWalkEnter()
 {
-    qDebug() << title() << ": random walking";
 }
 
 void AxisControlPanel::resetPosition()
 {
     if (!m_motor) return;
-    qDebug() << QString("%1: reset counter").arg(title());
     m_motor->setReg(Lcnt, 0);
 }
 
@@ -348,8 +340,6 @@ void AxisControlPanel::track(double force)
 
     if (!m_tracking)
         return;
-
-    qDebug() << title() << "tracking with force" << m_trackingForce;
 
     if (!m_motor) return;
 
@@ -402,7 +392,6 @@ void AxisControlPanel::trackAxisDirection(double angle)
 void AxisControlPanel::parseEvents(quint8 mask)
 {
     if (mask & 0x80) {
-        qDebug() << title() << "drive finished event";
         emit driveFinished();
         if (m_motor)
             m_motor->notifyStopped();
@@ -468,9 +457,6 @@ void AxisControlPanel::gotoAngle(double newAngle)
     double arcLen = shortestArcAngle(newAngle - estimatedAngle());
     int dx = arcLen * m_circleLength / 360.0;
 
-    qDebug() << QString("%1.gotoAngle(%2) => from %3 need to go %4 (dx=%5)")
-                .arg(title()).arg(newAngle).arg(estimatedAngle()).arg(arcLen).arg(dx);
-
     m_motor->rmove(dx);
 }
 
@@ -484,5 +470,13 @@ void AxisControlPanel::ensureGoing()
     if (!m_motor) return;
     if (m_motor->motionState() == Motor::MotionStopped)
         m_motor->cmove( m_motor->lastSetDirection() );
+}
+
+void AxisControlPanel::reverse()
+{
+    if (!m_motor) return;
+
+    m_motor->reverseLastDirection();
+    ensureGoing();
 }
 

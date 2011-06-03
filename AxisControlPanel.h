@@ -63,6 +63,10 @@ public slots:
     void goCcw();
     void stop();
     void ensureGoing(); // continue going in the last direction
+    /* start moving in the opposite to last direction  or change
+       "last direction" for future ensureGoing() calls
+       */
+    void reverse();
 
     void enableSetAxisPara();
     void disableSetAxisPara();
