@@ -47,6 +47,7 @@ signals:
     void boardClosed();
 
     void faceDetected(QPointF force);
+    void faceLost();
     void gotcha();
 
 public slots:
@@ -91,7 +92,7 @@ protected:
 
     QStateMachine * m_machine;
     QMap<QString, QAbstractState*> m_states;
-    QTimer m_faceLostTimer, m_refindTimer, m_stareTimer, m_roamTimer;
+    QTimer m_refindTimer, m_stareTimer, m_roamTimer;
 
     videoInput * m_cams;
     int m_openCam;

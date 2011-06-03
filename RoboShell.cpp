@@ -229,13 +229,12 @@ void RoboShell::buildStateMachine()
     newSeek->setInitialState(search);
 
     // create / configure timers
-    m_faceLostTimer.setInterval(1000);
     m_refindTimer.setInterval(2500);
     m_stareTimer.setInterval(5000);
     m_roamTimer.setInterval(5000);
 
     // connect timeouts to transitions
-    track->addTransition(&m_faceLostTimer, SIGNAL(timeout()), refind);
+    track->addTransition(this, SIGNAL(faceLost()), refind);
     refind->addTransition(&m_refindTimer, SIGNAL(timeout()), search);
     gotcha->addTransition(&m_stareTimer, SIGNAL(timeout()), roam);
     roam->addTransition(&m_roamTimer, SIGNAL(timeout()), search);
@@ -678,7 +677,14 @@ void RoboShell::searchTick()
 
 void RoboShell::trackTick()
 {
-    qDebug() << "TODO: track tick";
+    if (m_faceTimestamp.elapsed() >  250) { // msec
+        emit faceLost();
+        return;
+    }
+
+    ui->cameraPanel->trackX( m_faceCenter );
+    ui->bodyPanel->trackAxis( ui->cameraPanel->estimatedAngle() );
+    ui->wheelsPanel->trackAxisDirection( ui->bodyPanel->estimatedAngle() );
 }
 
 void RoboShell::refindTick()
