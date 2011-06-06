@@ -114,16 +114,25 @@ void AxisControlPanel::syncOutputs()
     m_motor->output(mask);
 }
 
-void AxisControlPanel::goCw()
+void AxisControlPanel::cmove(int direction)
 {
     if (!m_motor) return;
-    m_motor->goCw();
+
+    if (( direction == Motor::Ccw && !(m_previousInputs & (1<<3)) )
+            || (direction == Motor::Cw && !(m_previousInputs & (1<<2))))
+        return;
+
+    m_motor->cmove((Motor::Direction)direction);
+}
+
+void AxisControlPanel::goCw()
+{
+    cmove(Motor::Cw);
 }
 
 void AxisControlPanel::goCcw()
 {
-    if (!m_motor) return;
-    m_motor->goCcw();
+    cmove(Motor::Ccw);
 }
 
 void AxisControlPanel::stop()
@@ -223,7 +232,6 @@ void AxisControlPanel::handleInputChanged(int input, int newValue)
     case 2:
     case 3:
         if (newValue == 0) {
-            qDebug() << "limit trigger -> stop";
             stop();
         }
         break;
@@ -368,11 +376,7 @@ void AxisControlPanel::track(double force)
         m_motor->setSpeed(desiredSpeed); // driving speed
         if ( m_motor->motionState() == Motor::MotionStopped ) {
 
-            if (( desiredDirection == Motor::Ccw && !(m_previousInputs & (1<<3)) )
-                    || (desiredDirection == Motor::Cw && !(m_previousInputs & (1<<2))))
-                return;
-
-            m_motor->cmove(desiredDirection);
+            cmove(desiredDirection);
 
         } else if ((m_motor->lastSetDirection() != desiredDirection)
                    && m_motor->motionState() != Motor::MotionBreaking) {

@@ -715,6 +715,7 @@ void RoboShell::onStateEnter()
         ui->cameraPanel->setSpeedToMax();
         ui->bodyPanel->setSpeedToMax();
         ui->armPanel->setSpeedToMax();
+        ui->armPanel->goCw(); // go up
         ui->wheelsPanel->setSpeedToMax();
 
         ui->bodyPanel->gotoAngle( -90 );

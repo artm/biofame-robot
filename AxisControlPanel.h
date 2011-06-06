@@ -61,6 +61,7 @@ public slots:
     void syncOutputs();
     void goCw();
     void goCcw();
+    void cmove(int direction);
     void stop();
     void ensureGoing(); // continue going in the last direction
     /* start moving in the opposite to last direction  or change
