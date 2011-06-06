@@ -217,7 +217,16 @@ void AxisControlPanel::poll()
 
 void AxisControlPanel::handleInputChanged(int input, int newValue)
 {
+    qDebug() << QString("%1 input %2 became %3").arg(title()).arg(input).arg(newValue);
+
     switch(input) {
+    case 2:
+    case 3:
+        if (newValue == 0) {
+            qDebug() << "limit trigger -> stop";
+            stop();
+        }
+        break;
     case 6:
     {
         // special actions in calibration states - before resetting the circle
@@ -358,7 +367,13 @@ void AxisControlPanel::track(double force)
         // ensure we move in the right direction and set speed
         m_motor->setSpeed(desiredSpeed); // driving speed
         if ( m_motor->motionState() == Motor::MotionStopped ) {
+
+            if (( desiredDirection == Motor::Ccw && !(m_previousInputs & (1<<3)) )
+                    || (desiredDirection == Motor::Cw && !(m_previousInputs & (1<<2))))
+                return;
+
             m_motor->cmove(desiredDirection);
+
         } else if ((m_motor->lastSetDirection() != desiredDirection)
                    && m_motor->motionState() != Motor::MotionBreaking) {
             m_motor->stop();

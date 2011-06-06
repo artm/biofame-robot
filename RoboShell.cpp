@@ -685,6 +685,7 @@ void RoboShell::machineTick()
         } else {
             // normal tracking
             ui->cameraPanel->trackX( m_faceCenter );
+            ui->armPanel->trackY( m_faceCenter );
             ui->bodyPanel->trackAxis( ui->cameraPanel->estimatedAngle() );
             ui->wheelsPanel->trackAxisDirection( ui->bodyPanel->estimatedAngle() );
         }
@@ -708,16 +709,19 @@ void RoboShell::onStateEnter()
     if (name == "search") {
         ui->cameraPanel->setTracking(false);
         ui->bodyPanel->setTracking(false);
+        ui->armPanel->setTracking(false);
         ui->wheelsPanel->setTracking(true); // wheels track body
 
         ui->cameraPanel->setSpeedToMax();
         ui->bodyPanel->setSpeedToMax();
+        ui->armPanel->setSpeedToMax();
         ui->wheelsPanel->setSpeedToMax();
 
         ui->bodyPanel->gotoAngle( -90 );
     } else if (name == "track") {
         ui->cameraPanel->setTracking(true); // camera tracks face
         ui->bodyPanel->setTracking(true); // body tracks camera
+        ui->armPanel->setTracking(true); // vertical tracking
         ui->wheelsPanel->setTracking(true); // wheels track body
 
     } else if (name == "refind") {
@@ -727,18 +731,19 @@ void RoboShell::onStateEnter()
         ui->wheelsPanel->setTracking(false);
 
         ui->bodyPanel->stop();
+        ui->armPanel->stop();
         ui->wheelsPanel->stop();
         ui->cameraPanel->setSpeedToMax();
         ui->cameraPanel->reverse();
         m_refindTimer.start();
     } else if (name == "gotcha") {
         ui->cameraPanel->setTracking(true); // keep tracking the face...
+        ui->armPanel->setTracking(true); // vertical tracking
         ui->bodyPanel->setTracking(false);
         ui->wheelsPanel->setTracking(false);
 
         ui->bodyPanel->stop();
         ui->wheelsPanel->stop();
-        ui->cameraPanel->stop();
 
         m_stareTimer.start();
 
@@ -746,10 +751,12 @@ void RoboShell::onStateEnter()
     } else if (name == "roam") {
         ui->cameraPanel->setTracking(false);
         ui->bodyPanel->setTracking(false);
+        ui->armPanel->setTracking(false);
         ui->wheelsPanel->setTracking(true);
 
         ui->cameraPanel->setSpeedToMax();
         ui->bodyPanel->setSpeedToMax();
+        ui->armPanel->setSpeedToMax();
         ui->wheelsPanel->setSpeedToMax();
 
         ui->bodyPanel->gotoAngle( -90 );
