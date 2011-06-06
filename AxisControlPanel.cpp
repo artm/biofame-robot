@@ -118,8 +118,8 @@ void AxisControlPanel::cmove(int direction)
 {
     if (!m_motor) return;
 
-    if (( direction == Motor::Ccw && !(m_previousInputs & (1<<3)) )
-            || (direction == Motor::Cw && !(m_previousInputs & (1<<2))))
+    if (( direction == Motor::Ccw && isAtBottomLimit() )
+            || (direction == Motor::Cw && isAtTopLimit()))
         return;
 
     m_motor->cmove((Motor::Direction)direction);
@@ -498,5 +498,14 @@ void AxisControlPanel::reverse()
 
     m_motor->reverseLastDirection();
     ensureGoing();
+}
+
+void AxisControlPanel::bounceUp()
+{
+    if (!m_motor) return;
+    if ( m_motor->motionState() == Motor::MotionStopped && isAtBottomLimit() ) {
+        setSpeedToMax();
+        goCw();
+    }
 }
 

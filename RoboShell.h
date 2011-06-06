@@ -74,6 +74,8 @@ public slots:
     void onStateEnter();
     void onStateExit();
 
+    void turnAround();
+
 protected:
     virtual bool eventFilter(QObject *, QEvent *);
 
@@ -86,7 +88,7 @@ protected:
 
     QStateMachine * m_machine;
     QMap<QString, QAbstractState*> m_states;
-    QTimer m_refindTimer, m_stareTimer, m_roamTimer;
+    QTimer m_refindTimer, m_stareTimer, m_roamTimer, m_turnAroundTimer;
 
     videoInput * m_cams;
     int m_openCam;

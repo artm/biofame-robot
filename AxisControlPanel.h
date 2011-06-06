@@ -17,6 +17,11 @@ class AxisControlPanel : public QGroupBox
     Q_PROPERTY( bool circleReset READ circleReset WRITE setCircleReset )
     Q_PROPERTY( bool tracking READ isTracking WRITE setTracking )
 public:
+    enum {
+        TOP_SWITCH = 2,
+        BOTTOM_SWITCH = 3
+    };
+
     explicit AxisControlPanel(QWidget *parent = 0);
     ~AxisControlPanel();
 
@@ -43,6 +48,9 @@ public:
     void gotoAngle(double newAngle);
 
     void setMachine(QStateMachine * machine) { m_machine = machine; }
+
+    bool isAtTopLimit() { return (m_previousInputs & (1<<TOP_SWITCH)) == 0; }
+    bool isAtBottomLimit() { return (m_previousInputs & (1<<BOTTOM_SWITCH)) == 0; }
 
 signals:
     void inputChanged(int input, int newValue);
@@ -104,6 +112,8 @@ public slots:
     void onRndWalkEnter();
 
     void setSpeedToMax();
+
+    void bounceUp();
 
 private:
     Ui::AxisControlPanel *ui;

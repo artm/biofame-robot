@@ -167,6 +167,8 @@ RoboShell::RoboShell(QWidget *parent)
     connect(ui->cameraPanel, SIGNAL(angleChanged(double)), ui->camAngle, SLOT(setValue(double)));
     connect(ui->bodyPanel, SIGNAL(angleChanged(double)), ui->bodyAngle, SLOT(setValue(double)));
 
+    connect(&m_turnAroundTimer, SIGNAL(timeout()), SLOT(turnAround()));
+
     loadSettings();
 }
 
@@ -661,6 +663,8 @@ void RoboShell::machineTick()
 {
     QSet<QAbstractState*> state = m_machine->configuration();
 
+    ui->armPanel->bounceUp();
+
     if (state.contains(m_states["search"])) {
         // camera wiggles
         Motor * cam = ui->cameraPanel->motor();
@@ -718,7 +722,8 @@ void RoboShell::onStateEnter()
         ui->armPanel->goCw(); // go up
         ui->wheelsPanel->setSpeedToMax();
 
-        ui->bodyPanel->gotoAngle( -90 );
+        turnAround();
+        m_turnAroundTimer.start(120000); // turn around every 2 min
     } else if (name == "track") {
         ui->cameraPanel->setTracking(true); // camera tracks face
         ui->bodyPanel->setTracking(true); // body tracks camera
@@ -760,17 +765,20 @@ void RoboShell::onStateEnter()
         ui->armPanel->setSpeedToMax();
         ui->wheelsPanel->setSpeedToMax();
 
-        ui->bodyPanel->gotoAngle( -90 );
+        turnAround();
         ui->cameraPanel->gotoAngle( 0 );
 
         m_roamTimer.start();
     }
-
 }
 
 void RoboShell::onStateExit()
 {
-    printVerbState("Exited");
+    QString name = printVerbState("Exited");
+
+    if (name == "search") {
+        m_turnAroundTimer.stop();
+    }
 }
 
 QString RoboShell::printVerbState(const QString &verb)
@@ -780,5 +788,13 @@ QString RoboShell::printVerbState(const QString &verb)
     QString name = state->objectName();
     qDebug() << verb << "state" << name;
     return name;
+}
+
+void RoboShell::turnAround()
+{
+    ui->bodyPanel->setSpeedToMax();
+    ui->bodyPanel->gotoAngle( ui->bodyPanel->estimatedAngle() < 0 ? 90 : -90 );
+    ui->armPanel->setSpeedToMax();
+    ui->armPanel->goCw();
 }
 
