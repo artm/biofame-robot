@@ -67,7 +67,7 @@ RoboShell::RoboShell(QWidget *parent)
     , m_trackingState(FACE_DETECTION)
     , m_sound(new SoundSystem(this))
     , m_displayMode(0)
-    , m_gotchaSize(0.55)
+    , m_gotchaSize(0.4)
     , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
     m_logFile.open(QFile::WriteOnly);
