@@ -82,21 +82,13 @@ RoboShell::RoboShell(QWidget *parent)
     s_oldMsgHandler = qInstallMsgHandler(msgHandler);
 
     m_sound->start();
-    connect(ui->geiger, SIGNAL(valueChanged(int)), m_sound, SLOT(setGeiger(int)));
 
     m_faceTracker = new FaceTracker(this);
     if (m_faceTracker->usesVerilook()) {
         connect(ui->minIOD, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setMinIOD(int)));
         connect(ui->maxIOD, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setMaxIOD(int)));
         connect(ui->confThresh, SIGNAL(valueChanged(double)), m_faceTracker, SLOT(setConfidenceThreshold(double)));
-        connect(ui->qualityThresh, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setQualityThreshold(int)));
-
     }
-    connect(ui->smin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setSMin(int)));
-    connect(ui->vmin, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMin(int)));
-    connect(ui->vmax, SIGNAL(valueChanged(int)), m_faceTracker, SLOT(setVMax(int)));
-    connect(ui->retrackThreshold, SIGNAL(valueChanged(int)),
-            m_faceTracker, SLOT(setRetrackThreshold(int)));
 
     connect(ui->openControllerButton, SIGNAL(toggled(bool)),SLOT(toggleOpenMotors(bool)));
 
@@ -481,15 +473,6 @@ void RoboShell::videoTask()
                     QRectF displayFace(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
                     painter.setPen( QColor(0,255,0,150) );
                     painter.drawRect( displayFace );
-
-                    if (ui->camShift->isChecked()) {
-                        // convert faces[0] to deinterlaced coordinates
-                        sx = (double) deinterlaced.width() / gray.width();
-                        sy = (double) deinterlaced.height() / gray.height();
-                        QRect face(faces[0].x()*sx, faces[0].y()*sy, faces[0].width()*sx, faces[0].height()*sy);
-                        m_faceTracker->startTracking(deinterlaced, face);
-                        m_trackingState = TRACKING;
-                    }
                 }
 
                 break;
@@ -513,7 +496,7 @@ void RoboShell::videoTask()
 
                     painter.setPen( QColor(0,255,0,150) );
                     painter.drawRect( displayFace );
-                    ui->confidence->setValue( m_faceTracker->trackConfidence() );
+                    //ui->confidence->setValue( m_faceTracker->trackConfidence() );
                 }
                 break;
             }
@@ -576,13 +559,6 @@ void RoboShell::loadSettings()
     ui->minIOD->setValue( s.value("minIOD", 5).toInt() );
     ui->maxIOD->setValue( s.value("maxIOD", 320).toInt() );
     ui->confThresh->setValue( s.value("confThresh", 52.0).toDouble() );
-    ui->qualityThresh->setValue( s.value("qualityThresh", 128).toInt() );
-
-    ui->camShift->setChecked( s.value("camShift", false).toBool() );
-    ui->smin->setValue( s.value("smin", 30).toInt() );
-    ui->vmin->setValue( s.value("vmin", 10).toInt() );
-    ui->vmax->setValue( s.value("vmax", 255).toInt() );
-    ui->retrackThreshold->setValue( s.value("retrackThreshold", 25).toInt() );
 
     s.endGroup();
 }
@@ -610,13 +586,6 @@ void RoboShell::saveSettings()
     s.setValue("minIOD", ui->minIOD->value());
     s.setValue("maxIOD", ui->maxIOD->value());
     s.setValue("confThresh", ui->confThresh->value());
-    s.setValue("qualityThresh", ui->qualityThresh->value());
-
-    s.setValue("camShift", ui->camShift->isChecked());
-    s.setValue("smin", ui->smin->value());
-    s.setValue("vmin", ui->vmin->value());
-    s.setValue("vmax", ui->vmax->value());
-    s.setValue("retrackThreshold", ui->retrackThreshold->value());
     s.endGroup();
 
 }
