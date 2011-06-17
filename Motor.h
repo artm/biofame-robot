@@ -9,36 +9,18 @@ class Motor : public QObject
 {
     Q_OBJECT
 public:
-    enum EventId {
-        STOPPED,
-    };
     enum Direction {
         Cw = 0,
         Ccw = 1,
+        Down = Ccw,
+        Up = Cw
     };
     enum MotionState {
         MotionStopped,
         MotionPtp,
         MotionCont,
-        MotionBreaking,
+        MotionBreaking
     };
-
-    struct Event : public QEvent {
-        Event(int axis, EventId id)
-            : QEvent(QEvent::Type(QEvent::User+1))
-            , m_axis(axis)
-            , m_id(id)
-        {}
-
-        int axis() const { return m_axis; }
-        EventId id() const { return m_id; }
-
-    protected:
-
-        int m_axis;
-        EventId m_id;
-    };
-
 
     explicit Motor(int& boardId, int axisNum, QObject *parent = 0);
     void setUi(AxisControlPanel * ui) { setParent(ui); m_ui = ui; }
@@ -77,18 +59,4 @@ protected:
     Direction m_lastSetDirection;
     MotionState m_motionState;
 };
-
-class MotorEventTransition : public QAbstractTransition {
-    Q_OBJECT
-public:
-    MotorEventTransition(int axis, Motor::EventId id);
-protected:
-    virtual bool eventTest(QEvent *event);
-    virtual void onTransition(QEvent *) {}
-
-    int m_axis;
-
-    Motor::EventId m_id;
-};
-
 #endif // MOTOR_H

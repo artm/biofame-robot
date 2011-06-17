@@ -70,6 +70,8 @@ public slots:
     void syncOutputs();
     void goCw();
     void goCcw();
+    void goUp();
+    void goDown();
     void cmove(int direction);
     void stop();
     void ensureGoing(); // continue going in the last direction

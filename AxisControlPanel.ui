@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>247</width>
+    <width>229</width>
     <height>266</height>
    </rect>
   </property>
@@ -54,7 +54,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>243</width>
+        <width>225</width>
         <height>220</height>
        </rect>
       </property>
@@ -453,8 +453,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>181</width>
-        <height>155</height>
+        <width>596</width>
+        <height>343</height>
        </rect>
       </property>
       <attribute name="label">
@@ -628,6 +628,38 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>stop</tabstop>
+  <tabstop>ccw</tabstop>
+  <tabstop>cw</tabstop>
+  <tabstop>curveType</tabstop>
+  <tabstop>initSpeed</tabstop>
+  <tabstop>driveSpeed</tabstop>
+  <tabstop>maxDriveSpeed</tabstop>
+  <tabstop>acceleration</tabstop>
+  <tabstop>accelerationRate</tabstop>
+  <tabstop>setAxisPara</tabstop>
+  <tabstop>desire</tabstop>
+  <tabstop>position</tabstop>
+  <tabstop>speed</tabstop>
+  <tabstop>in7</tabstop>
+  <tabstop>in6</tabstop>
+  <tabstop>in5</tabstop>
+  <tabstop>in4</tabstop>
+  <tabstop>in3</tabstop>
+  <tabstop>in2</tabstop>
+  <tabstop>in1</tabstop>
+  <tabstop>in0</tabstop>
+  <tabstop>out7</tabstop>
+  <tabstop>out6</tabstop>
+  <tabstop>out5</tabstop>
+  <tabstop>out4</tabstop>
+  <tabstop>out3</tabstop>
+  <tabstop>out2</tabstop>
+  <tabstop>out1</tabstop>
+  <tabstop>out0</tabstop>
+  <tabstop>invert</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

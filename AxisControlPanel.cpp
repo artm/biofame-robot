@@ -125,6 +125,17 @@ void AxisControlPanel::cmove(int direction)
     m_motor->cmove((Motor::Direction)direction);
 }
 
+void AxisControlPanel::goUp()
+{
+    cmove(Motor::Up);
+}
+
+void AxisControlPanel::goDown()
+{
+    cmove(Motor::Down);
+}
+
+
 void AxisControlPanel::goCw()
 {
     cmove(Motor::Cw);

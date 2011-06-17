@@ -162,18 +162,6 @@ void Motor::setReg(int reg, int value)
     CHECK_RESULT( P1240MotWrReg( m_boardId, m_axisBit, reg, value) );
 }
 
-MotorEventTransition::MotorEventTransition(int axis, Motor::EventId id)
-    : m_axis(axis)
-    , m_id(id)
-{
-}
-
-bool MotorEventTransition::eventTest(QEvent *event)
-{
-    return (event->type() == QEvent::User+1)
-            && (m_axis == dynamic_cast<Motor::Event*>(event)->axis())
-            && (m_id == dynamic_cast<Motor::Event*>(event)->id());
-}
 
 void Motor::enableEvents(quint8 mask)
 {

@@ -551,6 +551,9 @@ void RoboShell::loadSettings()
     ui->armPanel->loadSettings(s, "Arm");
     ui->bodyPanel->loadSettings(s, "Body");
     ui->wheelsPanel->loadSettings(s, "Wheels");
+
+    ui->vertSpan->setValue( s.value("verticalSpan", -2000).toInt() );
+
     s.endGroup();
 
     s.beginGroup("Face tracker");
@@ -578,6 +581,9 @@ void RoboShell::saveSettings()
     ui->armPanel->saveSettings(s, "Arm");
     ui->bodyPanel->saveSettings(s, "Body");
     ui->wheelsPanel->saveSettings(s, "Wheels");
+
+    s.setValue("verticalSpan", ui->vertSpan->value());
+
     s.endGroup();
 
     s.beginGroup("Face tracker");
@@ -646,6 +652,24 @@ void RoboShell::machineTick()
             // nothing to do (ptp motion or breaking)
             break;
         }
+        Motor * arm = ui->armPanel->motor();
+        switch (arm->motionState()) {
+        case Motor::MotionCont:
+            if (arm->lastSetDirection() == Motor::Down)
+                arm->stop();
+            break;
+        case Motor::MotionStopped:
+            if (ui->armPanel->isAtTopLimit()) {
+                // ptp down
+                arm->rmove( ui->vertSpan->value() );
+            } else {
+                ui->armPanel->goUp();
+            }
+            break;
+        default:
+            break;
+        }
+
         // body doesn't move (has turned towards tangent on entering)
 
         // wheels go into looking direction
@@ -695,7 +719,6 @@ void RoboShell::onStateEnter()
         ui->cameraPanel->setSpeedToMax();
         ui->bodyPanel->setSpeedToMax();
         ui->armPanel->setSpeedToMax();
-        ui->armPanel->goCw(); // go up
         ui->wheelsPanel->setSpeedToMax();
 
         m_turnAroundTimer.start(120000); // turn around every 2 min

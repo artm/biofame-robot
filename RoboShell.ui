@@ -297,7 +297,7 @@
        <item row="15" column="0">
         <widget class="QLabel" name="label_8">
          <property name="text">
-          <string>Geiger:</string>
+          <string>Vertical wiggle span:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -653,6 +653,22 @@
          </property>
          <property name="maximum">
           <number>1000000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="1">
+        <widget class="QSpinBox" name="vertSpan">
+         <property name="minimum">
+          <number>-1000000</number>
+         </property>
+         <property name="maximum">
+          <number>1000000</number>
+         </property>
+         <property name="singleStep">
+          <number>10</number>
+         </property>
+         <property name="value">
+          <number>1000</number>
          </property>
         </widget>
        </item>
