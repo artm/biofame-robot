@@ -178,7 +178,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="0">
+       <item row="11" column="0">
         <widget class="QLabel" name="camForceLabel">
          <property name="text">
           <string>Camera:</string>
@@ -195,7 +195,7 @@
          </property>
         </widget>
        </item>
-       <item row="16" column="2">
+       <item row="17" column="2">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -264,7 +264,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="0">
+       <item row="13" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
           <string>Body:</string>
@@ -274,7 +274,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="0">
+       <item row="14" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>Wheels:</string>
@@ -284,7 +284,7 @@
          </property>
         </widget>
        </item>
-       <item row="14" column="0">
+       <item row="15" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Arm:</string>
@@ -294,7 +294,7 @@
          </property>
         </widget>
        </item>
-       <item row="15" column="0">
+       <item row="16" column="0">
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>Vertical wiggle span:</string>
@@ -410,7 +410,7 @@
          </property>
         </widget>
        </item>
-       <item row="14" column="1">
+       <item row="15" column="1">
         <widget class="SignalIndicator" name="armForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -426,7 +426,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="1">
+       <item row="14" column="1">
         <widget class="SignalIndicator" name="wheelsForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -442,7 +442,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="1">
+       <item row="13" column="1">
         <widget class="SignalIndicator" name="bodyForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -458,7 +458,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="1">
+       <item row="11" column="1">
         <widget class="SignalIndicator" name="camForce" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -474,7 +474,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="1">
+       <item row="10" column="1">
         <widget class="QLabel" name="label">
          <property name="text">
           <string>Force</string>
@@ -558,7 +558,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="2">
+       <item row="11" column="2">
         <widget class="QDoubleSpinBox" name="camAngle">
          <property name="enabled">
           <bool>false</bool>
@@ -571,7 +571,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="2">
+       <item row="13" column="2">
         <widget class="QDoubleSpinBox" name="bodyAngle">
          <property name="enabled">
           <bool>false</bool>
@@ -584,7 +584,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="2">
+       <item row="10" column="2">
         <widget class="QLabel" name="label_6">
          <property name="text">
           <string>Angle</string>
@@ -594,7 +594,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="3">
+       <item row="10" column="3">
         <widget class="QLabel" name="label_7">
          <property name="text">
           <string>Speed</string>
@@ -604,7 +604,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="3">
+       <item row="11" column="3">
         <widget class="QSpinBox" name="camSpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -617,7 +617,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="3">
+       <item row="13" column="3">
         <widget class="QSpinBox" name="bodySpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -630,7 +630,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="3">
+       <item row="14" column="3">
         <widget class="QSpinBox" name="wheelsSpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -643,7 +643,7 @@
          </property>
         </widget>
        </item>
-       <item row="14" column="3">
+       <item row="15" column="3">
         <widget class="QSpinBox" name="armSpeed">
          <property name="enabled">
           <bool>false</bool>
@@ -656,7 +656,7 @@
          </property>
         </widget>
        </item>
-       <item row="15" column="1">
+       <item row="16" column="1">
         <widget class="QSpinBox" name="vertSpan">
          <property name="minimum">
           <number>-1000000</number>
@@ -669,6 +669,29 @@
          </property>
          <property name="value">
           <number>1000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QDoubleSpinBox" name="gotchaRatio">
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.050000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.300000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="gotchaRatioLabel">
+         <property name="text">
+          <string>Gotcha ratio:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>

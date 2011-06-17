@@ -67,7 +67,6 @@ RoboShell::RoboShell(QWidget *parent)
     , m_trackingState(FACE_DETECTION)
     , m_sound(new SoundSystem(this))
     , m_displayMode(0)
-    , m_gotchaSize(0.55)
     , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
     m_logFile.open(QFile::WriteOnly);
@@ -562,7 +561,7 @@ void RoboShell::loadSettings()
     ui->minIOD->setValue( s.value("minIOD", 5).toInt() );
     ui->maxIOD->setValue( s.value("maxIOD", 320).toInt() );
     ui->confThresh->setValue( s.value("confThresh", 52.0).toDouble() );
-
+    ui->gotchaRatio->setValue( s.value("gotchaRatio", 0.3).toDouble() );
     s.endGroup();
 }
 
@@ -592,6 +591,7 @@ void RoboShell::saveSettings()
     s.setValue("minIOD", ui->minIOD->value());
     s.setValue("maxIOD", ui->maxIOD->value());
     s.setValue("confThresh", ui->confThresh->value());
+    s.setValue("gotchaRatio", ui->gotchaRatio->value());
     s.endGroup();
 
 }
@@ -620,7 +620,7 @@ void RoboShell::notifyOfFace(const QRect &face, const QImage& where)
     m_faceTimestamp.restart();
 
     emit faceDetected(vector);
-    if (m_faceSize >= m_gotchaSize && (m_timeInTrack.elapsed() > 2000))
+    if (m_faceSize >= ui->gotchaRatio->value() && (m_timeInTrack.elapsed() > 2000))
         emit gotcha();
 }
 

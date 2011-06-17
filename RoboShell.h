@@ -108,8 +108,6 @@ protected:
     float m_faceSize; // relative to frame width
     QTime m_faceTimestamp; // when last seen
 
-    float m_gotchaSize;
-
     // Logger (TODO separate)
     QFile m_logFile;
     QTextStream m_log;
