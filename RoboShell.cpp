@@ -67,7 +67,7 @@ RoboShell::RoboShell(QWidget *parent)
     , m_trackingState(FACE_DETECTION)
     , m_sound(new SoundSystem(this))
     , m_displayMode(0)
-    , m_gotchaSize(0.4)
+    , m_gotchaSize(0.55)
     , m_logFile( QString("BioFame-%1.log").arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")) )
 {
     m_logFile.open(QFile::WriteOnly);
@@ -127,7 +127,6 @@ RoboShell::RoboShell(QWidget *parent)
     connect(&m_pollTimer, SIGNAL(timeout()), SLOT(motorsTask()));
 
     connect(this, SIGNAL(faceDetected(QPointF)), m_sound, SLOT(click()));
-    connect(this, SIGNAL(gotcha()), m_sound, SLOT(click()));
 
     buildStateMachine();
 
@@ -230,7 +229,7 @@ void RoboShell::buildStateMachine()
     addNamedState("refind", refind = new QState(newSeek));
     addNamedState("gotcha", gotcha = new QState(newSeek));
     addNamedState("roam", roam = new QState(newSeek));
-    newSeek->setInitialState(search);
+    newSeek->setInitialState(roam);
 
     // create / configure timers
     m_refindTimer.setInterval(2500);
@@ -448,18 +447,18 @@ bool RoboShell::eventFilter(QObject * obj, QEvent * e)
 void RoboShell::videoTask()
 {
     if ((m_openCam > -1) && m_cams->isFrameNew(m_openCam)) {
-        QImage inputFrame  = QImage(m_cams->getWidth(m_openCam),
+        m_frame  = QImage(m_cams->getWidth(m_openCam),
                                     m_cams->getHeight(m_openCam),
                                     QImage::Format_RGB888);
-        m_cams->getPixels(m_openCam, inputFrame.bits(), true, true);
+        m_cams->getPixels(m_openCam, m_frame.bits(), true, true);
 
 
         QImage deinterlaced = ui->deinterlace->isChecked()
-                ? inputFrame.scaled(inputFrame.width(), inputFrame.height()/2)
-                : inputFrame;
+                ? m_frame.scaled(m_frame.width(), m_frame.height()/2)
+                : m_frame;
 
         QImage display =
-                deinterlaced.scaled(320, 320*inputFrame.height()/inputFrame.width(),
+                deinterlaced.scaled(320, 320*m_frame.height()/m_frame.width(),
                                     Qt::IgnoreAspectRatio, Qt::SmoothTransformation).copy();
 
         if (m_faceTracker) {
@@ -645,9 +644,8 @@ void RoboShell::notifyOfFace(const QRect &face, const QImage& where)
     m_faceSize = (float)face.height() / where.height();
     m_faceTimestamp.restart();
 
-    if (m_faceSize < m_gotchaSize)
-        emit faceDetected(vector);
-    else
+    emit faceDetected(vector);
+    if (m_faceSize >= m_gotchaSize && (m_timeInTrack.elapsed() > 2000))
         emit gotcha();
 }
 
@@ -673,7 +671,7 @@ void RoboShell::machineTick()
             cam->stop();
             break;
         case Motor::MotionStopped:
-            ui->cameraPanel->gotoAngle( ui->cameraPanel->estimatedAngle() < 0 ? 35 : -35 );
+            ui->cameraPanel->gotoAngle( ui->cameraPanel->estimatedAngle() < 0 ? 45 : -45 );
             break;
         default:
             // nothing to do (ptp motion or breaking)
@@ -684,7 +682,7 @@ void RoboShell::machineTick()
         // wheels go into looking direction
         ui->wheelsPanel->trackAxisDirection( ui->bodyPanel->estimatedAngle() );
     } else if (state.contains(m_states["track"])) {
-        if (m_faceTimestamp.elapsed() >  1000) { // msec
+        if (m_faceTimestamp.elapsed() >  3000) { // msec
             emit faceLost();
         } else {
             // normal tracking
@@ -701,7 +699,14 @@ void RoboShell::machineTick()
     } else if (state.contains(m_states["roam"])) {
         // go away without any interest in life, universe or anything
         ui->wheelsPanel->trackAxisDirection( ui->bodyPanel->estimatedAngle() );
+        ui->cameraPanel->ensureAngle( 0 );
     }
+}
+
+void uploadFace(const QImage& frame) {
+    QDir dest("\\\\bioscreen\\incoming");
+    if (frame.save( dest.filePath("snap.jpg.tmp"), "JPG" ))
+        dest.rename( "snap.jpg.tmp", "snap.jpg" );
 }
 
 void RoboShell::onStateEnter()
@@ -710,10 +715,12 @@ void RoboShell::onStateEnter()
 
     m_sound->say(name);
 
+    ui->cameraPanel->setTracking(false);
+    ui->bodyPanel->setTracking(false);
+    ui->armPanel->setTracking(false);
+    ui->wheelsPanel->setTracking(false);
+
     if (name == "search") {
-        ui->cameraPanel->setTracking(false);
-        ui->bodyPanel->setTracking(false);
-        ui->armPanel->setTracking(false);
         ui->wheelsPanel->setTracking(true); // wheels track body
 
         ui->cameraPanel->setSpeedToMax();
@@ -722,7 +729,6 @@ void RoboShell::onStateEnter()
         ui->armPanel->goCw(); // go up
         ui->wheelsPanel->setSpeedToMax();
 
-        turnAround();
         m_turnAroundTimer.start(120000); // turn around every 2 min
     } else if (name == "track") {
         ui->cameraPanel->setTracking(true); // camera tracks face
@@ -730,12 +736,10 @@ void RoboShell::onStateEnter()
         ui->armPanel->setTracking(true); // vertical tracking
         ui->wheelsPanel->setTracking(true); // wheels track body
 
+        m_timeInTrack.restart();
+
     } else if (name == "refind") {
         // lock all (camera will be forced to reverse)
-        ui->cameraPanel->setTracking(false);
-        ui->bodyPanel->setTracking(false);
-        ui->wheelsPanel->setTracking(false);
-
         ui->bodyPanel->stop();
         ui->armPanel->stop();
         ui->wheelsPanel->stop();
@@ -745,28 +749,22 @@ void RoboShell::onStateEnter()
     } else if (name == "gotcha") {
         ui->cameraPanel->setTracking(true); // keep tracking the face...
         ui->armPanel->setTracking(true); // vertical tracking
-        ui->bodyPanel->setTracking(false);
-        ui->wheelsPanel->setTracking(false);
-
         ui->bodyPanel->stop();
         ui->wheelsPanel->stop();
 
         m_stareTimer.start();
+        QtConcurrent::run( uploadFace , m_frame );
 
         qDebug() << "TODO send image to the other one";
     } else if (name == "roam") {
-        ui->cameraPanel->setTracking(false);
-        ui->bodyPanel->setTracking(false);
-        ui->armPanel->setTracking(false);
         ui->wheelsPanel->setTracking(true);
 
         ui->cameraPanel->setSpeedToMax();
         ui->bodyPanel->setSpeedToMax();
-        ui->armPanel->setSpeedToMax();
         ui->wheelsPanel->setSpeedToMax();
 
         turnAround();
-        ui->cameraPanel->gotoAngle( 0 );
+        ui->armPanel->stop();
 
         m_roamTimer.start();
     }
@@ -779,6 +777,7 @@ void RoboShell::onStateExit()
     if (name == "search") {
         m_turnAroundTimer.stop();
     }
+
 }
 
 QString RoboShell::printVerbState(const QString &verb)
@@ -794,7 +793,5 @@ void RoboShell::turnAround()
 {
     ui->bodyPanel->setSpeedToMax();
     ui->bodyPanel->gotoAngle( ui->bodyPanel->estimatedAngle() < 0 ? 90 : -90 );
-    ui->armPanel->setSpeedToMax();
-    ui->armPanel->goCw();
 }
 

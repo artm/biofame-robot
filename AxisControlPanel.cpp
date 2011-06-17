@@ -477,6 +477,9 @@ void AxisControlPanel::gotoAngle(double newAngle)
     double arcLen = shortestArcAngle(newAngle - estimatedAngle());
     int dx = arcLen * m_circleLength / 360.0;
 
+    qDebug() << QString("GOTO ANGLE: current: %1; target %2; arc: %3; dx: %4")
+                .arg(estimatedAngle()).arg(newAngle).arg(arcLen).arg(dx);
+
     m_motor->rmove(dx);
 }
 
@@ -497,7 +500,10 @@ void AxisControlPanel::reverse()
     if (!m_motor) return;
 
     m_motor->reverseLastDirection();
-    ensureGoing();
+    if (m_motor->motionState() != Motor::MotionStopped)
+        stop();
+    else
+        ensureGoing();
 }
 
 void AxisControlPanel::bounceUp()
@@ -506,6 +512,16 @@ void AxisControlPanel::bounceUp()
     if ( m_motor->motionState() == Motor::MotionStopped && isAtBottomLimit() ) {
         setSpeedToMax();
         goCw();
+    }
+}
+
+void AxisControlPanel::ensureAngle(double newAngle)
+{
+    if (!m_motor) return;
+    if (m_motor->motionState() == Motor::MotionStopped && fabs(estimatedAngle() - newAngle) > 1.0) {
+        gotoAngle(newAngle);
+    } else if (m_motor->motionState() == Motor::MotionCont) {
+        stop();
     }
 }
 

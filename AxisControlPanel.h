@@ -46,6 +46,7 @@ public:
     // return estimated angle (-180,180) or 360 for wheels
     double estimatedAngle() const;
     void gotoAngle(double newAngle);
+    void ensureAngle(double newAngle);
 
     void setMachine(QStateMachine * machine) { m_machine = machine; }
 

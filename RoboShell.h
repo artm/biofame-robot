@@ -89,9 +89,11 @@ protected:
     QStateMachine * m_machine;
     QMap<QString, QAbstractState*> m_states;
     QTimer m_refindTimer, m_stareTimer, m_roamTimer, m_turnAroundTimer;
+    QTime m_timeInTrack;
 
     videoInput * m_cams;
     int m_openCam;
+    QImage m_frame;
 
     FaceTracker * m_faceTracker;
     // new statefull tracking
