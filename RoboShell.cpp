@@ -552,6 +552,7 @@ void RoboShell::loadSettings()
     ui->wheelsPanel->loadSettings(s, "Wheels");
 
     ui->vertSpan->setValue( s.value("verticalSpan", -2000).toInt() );
+    ui->conclusionDelay->setValue( s.value("conclusionDelay", 5.0).toFloat());
 
     s.endGroup();
 
@@ -582,6 +583,7 @@ void RoboShell::saveSettings()
     ui->wheelsPanel->saveSettings(s, "Wheels");
 
     s.setValue("verticalSpan", ui->vertSpan->value());
+    s.setValue("conclusionDelay", ui->conclusionDelay->value());
 
     s.endGroup();
 
@@ -743,17 +745,15 @@ void RoboShell::onStateEnter()
         ui->armPanel->setTracking(true); // vertical tracking
         ui->bodyPanel->stop();
         ui->wheelsPanel->stop();
-
-        m_stareTimer.start();
+        m_stareTimer.start( ui->conclusionDelay->value() * 1000 );
         QtConcurrent::run( uploadFace , m_frame );
-
-        qDebug() << "TODO send image to the other one";
     } else if (name == "roam") {
         ui->wheelsPanel->setTracking(true);
 
         ui->cameraPanel->setSpeedToMax();
         ui->bodyPanel->setSpeedToMax();
         ui->wheelsPanel->setSpeedToMax();
+        ui->armPanel->setSpeedToMax();
 
         turnAround();
         ui->armPanel->stop();
@@ -777,7 +777,6 @@ QString RoboShell::printVerbState(const QString &verb)
     QAbstractState * state = dynamic_cast<QAbstractState*>(sender());
     Q_ASSERT(state);
     QString name = state->objectName();
-    qDebug() << verb << "state" << name;
     return name;
 }
 

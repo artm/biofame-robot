@@ -695,6 +695,26 @@
          </property>
         </widget>
        </item>
+       <item row="16" column="2">
+        <widget class="QLabel" name="conclusionLabel">
+         <property name="text">
+          <string>Conclusion Delay:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="16" column="3">
+        <widget class="QDoubleSpinBox" name="conclusionDelay">
+         <property name="toolTip">
+          <string>delay in &quot;gotcha&quot; state (sec)</string>
+         </property>
+         <property name="minimum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>60.000000000000000</double>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>

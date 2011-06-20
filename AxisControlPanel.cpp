@@ -237,8 +237,6 @@ void AxisControlPanel::poll()
 
 void AxisControlPanel::handleInputChanged(int input, int newValue)
 {
-    qDebug() << QString("%1 input %2 became %3").arg(title()).arg(input).arg(newValue);
-
     switch(input) {
     case 2:
     case 3:
@@ -496,6 +494,7 @@ void AxisControlPanel::gotoAngle(double newAngle)
 
 void AxisControlPanel::setSpeedToMax()
 {
+    qDebug() << title() << ": set speed to max (" << ui->maxDriveSpeed->value() << ")";
     m_motor->setSpeed( ui->maxDriveSpeed->value() );
 }
 
